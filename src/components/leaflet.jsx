@@ -27,7 +27,8 @@ export default function Leaflet(){
     const { data: gempaAuto, loading, error } = bmkg('list');
     const { allCuaca, loadingCuaca } = Cuaca();
     const [selectedPosition, setSelectedPosition] = useState(null);
-    const [ sideBar, setSideBar] = useState('gempa')
+    const [ sideBar, setSideBar ] = useState('gempa')
+    const [ activeSideBar, setActiveSideBar ] = useState(true)
 
     const handleGempaClick = (coordinateString) => {
         const coords = coordinateString.split(',').map(parseFloat);
@@ -39,6 +40,9 @@ export default function Leaflet(){
     const handleCuacaClick = (lat, lon) => {
         setSelectedPosition([lat, lon]);
     };
+    // const handleActiveClick = () => {
+    //     setActiveSideBar()
+    // }
 
     if (loading) return <p>Sedang memuat...</p>;
     if (error) return <p>Error: {error}</p>;
@@ -49,57 +53,59 @@ export default function Leaflet(){
             <div className="absolute top-0 left-0 w-full z-1000 pointer-events-none">
                 <Navbar />
             </div>
-            <div className="absolute w-full h-full right-0 z-999 pointer-events-none">
-                <div className="flex justify-end h-full items-center">
-                    <div className="bg-black h-[8%] w-[1%] pointer-events-auto rounded-l-2xl">
-                        
-                    </div>
-                    <div className="bg-white/80 w-1/6 h-screen overflow-y-auto pointer-events-auto">
-                        <div className="flex text-center justify-between">
-                            <div className={`w-full p-3 cursor-pointer font-bold text-sm ${sideBar === 'gempa' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-200'}`} onClick={() => handleSideBar('gempa')}>
-                                Gempa
-                            </div>
-                            <div className={`w-full p-3 cursor-pointer font-bold text-sm ${sideBar === 'cuaca' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-200'}`} onClick={() => handleSideBar('cuaca')}>
-                                Cuaca
-                            </div>
+                <div className="absolute w-full h-full right-0 z-999 pointer-events-none">
+                    <div className="flex justify-end h-full items-center">
+                        <div onClick={() => setActiveSideBar(!activeSideBar)} className={`hover:bg-gray-200 transition-colors cursor-pointer bg-white h-[10%] w-[1.5%] pointer-events-auto rounded-l-2xl flex justify-center items-center`}>
+                            <svg className={`transition-all duration-300 ${activeSideBar ? '' : 'rotate-180'}`} width="28px" height="28px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+                                <path d="M9 6L15 12L9 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
                         </div>
-                        {sideBar === 'gempa' && (
-                            <div>
-                                {gempaAuto.map((gempa, idx) => (
-                                    <div key={idx} onClick={() => handleGempaClick(gempa.Coordinates)} className="p-4 border-b border-gray-200 text-sm cursor-pointer hover:bg-blue-50 transition">
-                                        <h2 className="font-bold text-gray-800">{gempa.Wilayah}</h2>
-                                        <div className="flex justify-between mt-2">
-                                            <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold">Mag: {gempa.Magnitude}</span>
-                                            <span className="text-xs text-gray-500">{gempa.Jam}</span>
-                                        </div>
-                                    </div>
-                                ))}
+                        <div className={`bg-white/80 h-screen overflow-y-auto pointer-events-auto transition-all duration-500 ${activeSideBar ? 'w-1/6' : 'w-[0.1%]'}`}>
+                            <div className="flex text-center justify-between">
+                                <div className={`w-full p-3 cursor-pointer font-bold text-sm ${sideBar === 'gempa' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-200'}`} onClick={() => handleSideBar('gempa')}>
+                                    Gempa
+                                </div>
+                                <div className={`w-full p-3 cursor-pointer font-bold text-sm ${sideBar === 'cuaca' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-200'}`} onClick={() => handleSideBar('cuaca')}>
+                                    Cuaca
+                                </div>
                             </div>
-                        )}
+                            {sideBar === 'gempa' && (
+                                <div>
+                                    {gempaAuto.map((gempa, idx) => (
+                                        <div key={idx} onClick={() => handleGempaClick(gempa.Coordinates)} className="p-4 border-b border-gray-200 text-sm cursor-pointer hover:bg-blue-50 transition">
+                                            <h2 className="font-bold text-gray-800">{gempa.Wilayah}</h2>
+                                            <div className="flex justify-between mt-2">
+                                                <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold">Mag: {gempa.Magnitude}</span>
+                                                <span className="text-xs text-gray-500">{gempa.Jam}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
-                        {sideBar === 'cuaca' && (
-                            <div>
-                                {loadingCuaca ? (
-                                    <p className="p-4 text-center text-gray-500">Memuat data cuaca...</p>
-                                ) : (
-                                    allCuaca.map((item) => (
-                                        <div key={item.id} onClick={() => handleCuacaClick(item.lokasi.lat, item.lokasi.lon)} className="p-4 border-b border-gray-200 text-sm cursor-pointer hover:bg-blue-50 transition flex justify-between items-center">
-                                            <div>
-                                                <h2 className="font-bold text-gray-800">{item.lokasi.kelurahan}</h2>
-                                                <p className="text-xs text-gray-500">{item.lokasi.kecamatan}</p>
+                            {sideBar === 'cuaca' && (
+                                <div>
+                                    {loadingCuaca ? (
+                                        <p className="p-4 text-center text-gray-500">Memuat data cuaca...</p>
+                                    ) : (
+                                        allCuaca.map((item) => (
+                                            <div key={item.id} onClick={() => handleCuacaClick(item.lokasi.lat, item.lokasi.lon)} className="p-4 border-b border-gray-200 text-sm cursor-pointer hover:bg-blue-50 transition flex justify-between items-center">
+                                                <div>
+                                                    <h2 className="font-bold text-gray-800">{item.lokasi.kelurahan}</h2>
+                                                    <p className="text-xs text-gray-500">{item.lokasi.kecamatan}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-lg font-bold text-blue-600 block">{item.current.t}°C</span>
+                                                    <span className="text-xs text-gray-500">{item.current.weather_desc}</span>
+                                                </div>
                                             </div>
-                                            <div className="text-right">
-                                                <span className="text-lg font-bold text-blue-600 block">{item.current.t}°C</span>
-                                                <span className="text-xs text-gray-500">{item.current.weather_desc}</span>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
             <MapContainer gempaList={gempaAuto} selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
