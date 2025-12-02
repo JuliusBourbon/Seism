@@ -11,6 +11,9 @@ export default function Navbar(){
                     <NavLink to='/data'>
                         <h1>Data</h1>
                     </NavLink>
+                    <NavLink to='/cuaca'>
+                        <h1>Cuaca</h1>
+                    </NavLink>
                 </div>
             </div>
         </nav>

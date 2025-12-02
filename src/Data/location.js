@@ -1,0 +1,62 @@
+export const Location = [
+  { nama: "Jakarta Pusat - Gambir", kode: "31.71.01.1001" },
+  { nama: "Jakarta Selatan - Senayan/Gelora", kode: "31.74.02.1002" }, 
+  { nama: "Jakarta Utara - Pluit", kode: "31.72.01.1002" },
+  { nama: "Jakarta Timur - Cakung", kode: "31.75.06.1005" },
+  { nama: "Jakarta Barat - Kembangan", kode: "31.73.08.1001" },
+  { nama: "Bogor - Bogor Tengah", kode: "32.71.01.1001" },
+//   { nama: "Depok - Pancoran Mas", kode: "32.76.01.1001" },
+  { nama: "Tangerang - Tangerang Kota", kode: "36.71.01.1003" },
+  { nama: "Bekasi - Bekasi Barat", kode: "32.75.02.1005" },
+
+  { nama: "Bandung - Bandung Wetan (Gedung Sate)", kode: "32.73.20.1001" }, 
+  { nama: "Bandung - Lembang", kode: "32.17.02.2001" },
+  { nama: "Cianjur - Cianjur Kota", kode: "32.03.01.2001" },
+//   { nama: "Sukabumi - Pelabuhan Ratu (Pantai)", kode: "32.02.11.2001" },
+  { nama: "Pangandaran", kode: "32.18.04.2001" },
+  { nama: "Cirebon - Lemahwungkuk", kode: "32.74.03.1003" }, 
+
+  { nama: "Semarang - Simpang Lima", kode: "33.74.13.1004" },
+  { nama: "Yogyakarta - Malioboro", kode: "34.71.04.1003" },
+  { nama: "Sleman - Kaliurang", kode: "34.04.13.2002" },
+  { nama: "Magelang - Borobudur", kode: "33.08.10.2001" }, 
+  { nama: "Surakarta (Solo)", kode: "33.72.04.1001" },
+  { nama: "Banyumas - Purwokerto", kode: "33.02.24.1005" },
+
+  { nama: "Surabaya - Gubeng", kode: "35.78.06.1002" },
+  { nama: "Malang - Klojen", kode: "35.73.01.1005" },
+  { nama: "Batu - Batu (Wisata)", kode: "35.79.01.1003" }, 
+//   { nama: "Banyuwangi - Ketapang", kode: "35.10.16.2003" }, 
+  { nama: "Bromo - Probolinggo (Sukapura)", kode: "35.13.04.2005" },
+
+  { nama: "Bali - Kuta", kode: "51.03.01.1003" },
+  { nama: "Bali - Ubud", kode: "51.04.05.2003" },
+//   { nama: "Bali - Nusa Dua", kode: "51.03.05.1002" },
+  { nama: "Lombok Utara - Pemenang (Gili Trawangan)", kode: "52.08.02.2004" },
+  { nama: "Lombok Tengah - Mandalika", kode: "52.02.03.2002" }, 
+//   { nama: "Labuan Bajo (Komodo)", kode: "53.15.01.1006" }, 
+
+  { nama: "Medan - Medan Baru", kode: "12.71.09.1001" },
+//   { nama: "Danau Toba - Parapat", kode: "12.08.19.1001" },
+  { nama: "Padang - Padang Barat", kode: "13.71.04.1003" },
+  { nama: "Aceh - Banda Aceh", kode: "11.71.02.2001" },
+  { nama: "Palembang - Bukit Kecil", kode: "16.71.13.1002" },
+  { nama: "Lampung - Bandar Lampung", kode: "18.71.05.1005" },
+  { nama: "Batam - Batam Kota", kode: "21.71.10.1004" },
+
+  { nama: "Balikpapan - Balikpapan Kota", kode: "64.71.01.1003" },
+//   { nama: "Samarinda - Samarinda Kota", kode: "64.72.04.1005" },
+  { nama: "Pontianak - Pontianak Selatan", kode: "61.71.02.1001" }, 
+  { nama: "Banjarmasin - Banjarmasin Tengah", kode: "63.71.01.1006" },
+//   { nama: "IKN - Sepaku", kode: "64.09.04.2005" }, 
+
+  { nama: "Makassar - Losari/Ujung Pandang", kode: "73.71.03.1004" },
+//   { nama: "Manado - Bunaken", kode: "71.71.01.2001" }, 
+  { nama: "Palu - Palu Timur", kode: "72.71.03.1002" },
+  { nama: "Toraja - Rantepao", kode: "73.26.01.1005" },
+
+//   { nama: "Ambon - Sirimau", kode: "81.71.02.1006" },
+  { nama: "Jayapura - Jayapura Utara", kode: "91.71.01.1003" },
+//   { nama: "Raja Ampat - Waisai", kode: "91.08.01.1001" }, 
+  { nama: "Merauke", kode: "93.01.01.1004" } 
+];

@@ -2,40 +2,47 @@ import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import Navbar from "./navbar";
 import bmkg from "../API/bmkg.js"
+import Cuaca from "../API/cuaca.js";
 
 export default function Leaflet(){
-    
+    const cloudIcon = new L.DivIcon({
+        html: '<div style="font-size: 24px;">⛅</div>',
+        className: 'bg-transparent',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
     const FlyToLocation = ({ coords }) => {
-        const map = useMap(); // Mengambil instance peta
-
+        const map = useMap();
         useEffect(() => {
             if (coords) {
-            // flyTo(koordinat, zoomLevel, options)
-            map.flyTo(coords, 10, {
-                duration: 2 // Durasi animasi terbang (detik)
-            });
+                map.flyTo(coords, 10, {duration: 2});
             }
         }, [coords, map]);
 
-        return null; // Komponen ini tidak merender visual apa-apa
+        return null;
     };
-
+    
+    const centerPosition = [-2.5489, 118.0149]; 
+    const monasPosition = [-6.1754, 106.8272];
     const { data: gempaAuto, loading, error } = bmkg('list');
-
+    const { allCuaca, loadingCuaca } = Cuaca();
     const [selectedPosition, setSelectedPosition] = useState(null);
+    const [ sideBar, setSideBar] = useState('gempa')
 
     const handleGempaClick = (coordinateString) => {
-        // Parse string "-7.1,110.5" menjadi array [-7.1, 110.5]
         const coords = coordinateString.split(',').map(parseFloat);
         setSelectedPosition(coords);
+    };
+    const handleSideBar = (tab) => {
+        setSideBar(tab)
+    }
+    const handleCuacaClick = (lat, lon) => {
+        setSelectedPosition([lat, lon]);
     };
 
     if (loading) return <p>Sedang memuat...</p>;
     if (error) return <p>Error: {error}</p>;
-    // Koordinat Pusat Indonesia
-    const centerPosition = [-2.5489, 118.0149]; 
-    // Dummy
-    const monasPosition = [-6.1754, 106.8272];
+
     
     return (
         <div className="relative h-screen w-full border-gray-200 rounded-xl shadow-lg overflow-hidden">
@@ -48,13 +55,48 @@ export default function Leaflet(){
                         
                     </div>
                     <div className="bg-white/80 w-1/6 h-screen overflow-y-auto pointer-events-auto">
-                        {gempaAuto.map((gempa, idx) => (
-                            <div key={idx} onClick={() => handleGempaClick(gempa.Coordinates)} className="p-4 border-b border-gray-300 text-sm cursor-pointer hover:bg-blue-100 transition">
-                                <h2 className="font-bold text-gray-800">{gempa.Wilayah}</h2>
-                                <p>Mag: <span className="text-red-500 font-bold">{gempa.Magnitude}</span></p>
-                                <p className="text-xs text-gray-500">{gempa.Jam} | {gempa.Tanggal}</p>
+                        <div className="flex text-center justify-between">
+                            <div className={`w-full p-3 cursor-pointer font-bold text-sm ${sideBar === 'gempa' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-200'}`} onClick={() => handleSideBar('gempa')}>
+                                Gempa
                             </div>
-                        ))}
+                            <div className={`w-full p-3 cursor-pointer font-bold text-sm ${sideBar === 'cuaca' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-200'}`} onClick={() => handleSideBar('cuaca')}>
+                                Cuaca
+                            </div>
+                        </div>
+                        {sideBar === 'gempa' && (
+                            <div>
+                                {gempaAuto.map((gempa, idx) => (
+                                    <div key={idx} onClick={() => handleGempaClick(gempa.Coordinates)} className="p-4 border-b border-gray-200 text-sm cursor-pointer hover:bg-blue-50 transition">
+                                        <h2 className="font-bold text-gray-800">{gempa.Wilayah}</h2>
+                                        <div className="flex justify-between mt-2">
+                                            <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold">Mag: {gempa.Magnitude}</span>
+                                            <span className="text-xs text-gray-500">{gempa.Jam}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {sideBar === 'cuaca' && (
+                            <div>
+                                {loadingCuaca ? (
+                                    <p className="p-4 text-center text-gray-500">Memuat data cuaca...</p>
+                                ) : (
+                                    allCuaca.map((item) => (
+                                        <div key={item.id} onClick={() => handleCuacaClick(item.lokasi.lat, item.lokasi.lon)} className="p-4 border-b border-gray-200 text-sm cursor-pointer hover:bg-blue-50 transition flex justify-between items-center">
+                                            <div>
+                                                <h2 className="font-bold text-gray-800">{item.lokasi.kelurahan}</h2>
+                                                <p className="text-xs text-gray-500">{item.lokasi.kecamatan}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-lg font-bold text-blue-600 block">{item.current.t}°C</span>
+                                                <span className="text-xs text-gray-500">{item.current.weather_desc}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -84,6 +126,24 @@ export default function Leaflet(){
                         </Marker>
                     );
                 })}
+                {!loadingCuaca && allCuaca.map((item) => (
+                    <Marker 
+                        key={`cuaca-${item.id}`}
+                        position={[item.lokasi.lat, item.lokasi.lon]}
+                        icon={cloudIcon}
+                    >
+                        <Popup>
+                            <div className="text-center min-w-[100px]">
+                                <b className="text-blue-600 block mb-1">{item.lokasi.kelurahan}</b>
+                                <div className="flex justify-center items-center gap-2">
+                                    <span className="text-2xl">⛅</span>
+                                    <span className="text-xl font-bold">{item.current.t}°C</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">{item.current.weather_desc}</p>
+                            </div>
+                        </Popup>
+                    </Marker>
+                ))}
             </MapContainer>
             <div className="absolute bottom-0 left-0 z-1000 pointer-events-none">
                 <div className="bg-white border mb-5 ml-5 rounded-2xl pointer-events-auto">
