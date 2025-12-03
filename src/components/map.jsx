@@ -5,7 +5,14 @@ import bmkg from "../API/bmkg.js"
 import Cuaca from "../API/cuaca.js";
 import Form from "./form.jsx";
 
-export default function Leaflet(){
+export default function Map(){
+    const [activeTab, setActiveTab] = useState('home')
+    const [showForm, setShowForm] = useState(false)
+    const handleCloseForm = () => {
+        setShowForm(false);
+        setActiveTab('home');
+    };
+
     const cloudIcon = new L.DivIcon({
         html: '<div style="font-size: 24px;">⛅</div>',
         className: 'bg-transparent',
@@ -47,7 +54,7 @@ export default function Leaflet(){
     return (
         <div className="relative h-screen w-full border-gray-200 rounded-xl shadow-lg overflow-hidden">
             <div className="absolute top-0 left-0 w-full z-1000 pointer-events-none">
-                <Navbar />
+                <Navbar activeTab={activeTab} setActiveTab={setActiveTab} onOpenForm={() => setShowForm(true)}/>
             </div>
             <div className="absolute w-full h-full right-0 z-999 pointer-events-none">
                 <div className="flex justify-end h-full items-center">
@@ -180,8 +187,8 @@ export default function Leaflet(){
                 </div>
             </div> 
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
-                <div className="flex justify-center items-center h-full hidden">
-                    <Form/>
+                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${showForm ? 'flex' : 'hidden'}`}>
+                    <Form onClose={handleCloseForm}/>
                 </div>
             </div>
         </div>
