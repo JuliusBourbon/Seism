@@ -11,22 +11,29 @@ export default function Cuaca() {
       setLoadingCuaca(true);
       try {
         const fetchPromises = Location.map(async (loc) => {
-          const response = await fetch(`${BASE_URL}?adm4=${loc.kode}`);
-          const json = await response.json();
-          
-          if (!json.data || json.data.length === 0) return null;
+          try {
 
-          const dataLokasi = json.data[0].lokasi;
-          
-          return {
-            id: loc.kode,
-            lokasi: {
-              ...dataLokasi,
-              lat: parseFloat(dataLokasi.lat), 
-              lon: parseFloat(dataLokasi.lon)
-            },
-            current: json.data[0].cuaca[0][0] 
-          };
+            const response = await fetch(`${BASE_URL}?adm4=${loc.kode}`);
+            const json = await response.json();
+            
+            if (!json.data || json.data.length === 0) return null;
+            
+            const dataLokasi = json.data[0].lokasi;
+            const dataCuaca = json.data[0].cuaca;
+            
+            return {
+              id: loc.kode,
+              lokasi: {
+                ...dataLokasi,
+                lat: parseFloat(dataLokasi.lat), 
+                lon: parseFloat(dataLokasi.lon)
+              },
+              current: dataCuaca.flat()
+            };
+          } catch (err) {
+            console.warn(`Failed fetch ${loc.nama}`, err);
+            return null;
+          }
         });
 
         const results = await Promise.all(fetchPromises);

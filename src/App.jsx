@@ -5,6 +5,7 @@ import { Routes, Route, useLocation  } from 'react-router-dom'
 import './App.css'
 import DataGempa from './components/dataGempa'
 import Leaflet from './components/leaflet'
+import Form from './components/form'
 
 export default function App(){
   return(
