@@ -6,6 +6,17 @@ import Cuaca from "../API/cuaca.js";
 import Form from "./form.jsx";
 import Table from "./table.jsx";
 
+const FlyToLocation = ({ coords }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (coords) {
+            map.flyTo(coords, 10, {duration: 2});
+        }
+    }, [coords, map]);
+
+    return null;
+};
+
 export default function Map(){
     const [activeTab, setActiveTab] = useState('home')
     const [showForm, setShowForm] = useState(false)
@@ -22,16 +33,6 @@ export default function Map(){
         iconSize: [30, 30],
         iconAnchor: [15, 15]
     });
-    const FlyToLocation = ({ coords }) => {
-        const map = useMap();
-        useEffect(() => {
-            if (coords) {
-                map.flyTo(coords, 10, {duration: 2});
-            }
-        }, [coords, map]);
-
-        return null;
-    };
     
     const centerPosition = [-2.5489, 118.0149]; 
     const monasPosition = [-6.1754, 106.8272];
@@ -150,6 +151,7 @@ export default function Map(){
                                     <h1 className="font-bold text-lg">{gempa.Wilayah}</h1>
                                     <h1 className="text-sm">{gempa.Tanggal} {gempa.Jam}</h1>
                                     <h1 className="text-sm">Kedalaman: {gempa.Kedalaman} | Mag: <span className="text-red-600 font-bold">{gempa.Magnitude}</span></h1>
+                                    <h1>Potensi {gempa.Potensi}</h1>
                                 </div>
                             </Popup>
                         </Marker>
