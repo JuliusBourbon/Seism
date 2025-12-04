@@ -4,12 +4,15 @@ import Navbar from "./navbar";
 import bmkg from "../API/bmkg.js"
 import Cuaca from "../API/cuaca.js";
 import Form from "./form.jsx";
+import Table from "./table.jsx";
 
 export default function Map(){
     const [activeTab, setActiveTab] = useState('home')
     const [showForm, setShowForm] = useState(false)
+    const [showData, setShowData] = useState(false)
     const handleCloseForm = () => {
         setShowForm(false);
+        setShowData(false);
         setActiveTab('home');
     };
 
@@ -54,7 +57,11 @@ export default function Map(){
     return (
         <div className="relative h-screen w-full border-gray-200 rounded-xl shadow-lg overflow-hidden">
             <div className="absolute top-0 left-0 w-full z-1000 pointer-events-none">
-                <Navbar activeTab={activeTab} setActiveTab={setActiveTab} onOpenForm={() => setShowForm(true)}/>
+                <Navbar 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+                onOpenForm={() => setShowForm(true)} 
+                onOpenData={() => setShowData(true)}/>
             </div>
             <div className="absolute w-full h-full right-0 z-999 pointer-events-none">
                 <div className="flex justify-end h-full items-center">
@@ -186,6 +193,11 @@ export default function Map(){
                     <svg width="24px" height="24px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M7.90039 8.07954C7.90039 3.30678 15.4004 3.30682 15.4004 8.07955C15.4004 11.4886 11.9913 10.8067 11.9913 14.8976" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 19.01L12.01 18.9989" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                 </div>
             </div> 
+            <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
+                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${showData ? 'flex' : 'hidden'}`}>
+                    <Table onClose={handleCloseForm}/>
+                </div>
+            </div>
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
                 <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${showForm ? 'flex' : 'hidden'}`}>
                     <Form onClose={handleCloseForm}/>

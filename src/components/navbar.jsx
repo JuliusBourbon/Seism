@@ -24,8 +24,8 @@ export default function Navbar({ activeTab, setActiveTab, onOpenData, onOpenForm
                     <NavLink className={navClass('home')} onClick={() => setActiveTab('home')} to='/'>
                         <h1>Home</h1>
                     </NavLink>
-                    <div className={navClass('data')} onClick={() => {setActiveTab('data'); if(onOpenData) onOpenData();}} to='/data'>
-                        <h1>Data</h1>
+                    <div className={navClass('data')} onClick={() => {setActiveTab('data'); if(onOpenData) onOpenData();}}>
+                        <h1>Table</h1>
                     </div>
                     <div className={navClass('form')} onClick={() => {setActiveTab('form'); if(onOpenForm) onOpenForm();}} >
                         <h1>Form</h1>
