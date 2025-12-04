@@ -151,7 +151,6 @@ export default function Map(){
                                     <h1 className="font-bold text-lg">{gempa.Wilayah}</h1>
                                     <h1 className="text-sm">{gempa.Tanggal} {gempa.Jam}</h1>
                                     <h1 className="text-sm">Kedalaman: {gempa.Kedalaman} | Mag: <span className="text-red-600 font-bold">{gempa.Magnitude}</span></h1>
-                                    <h1>Potensi {gempa.Potensi}</h1>
                                 </div>
                             </Popup>
                         </Marker>
