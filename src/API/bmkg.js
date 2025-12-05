@@ -9,11 +9,10 @@ const useBMKG = (type = 'auto') => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const endpoint = type === 'auto' ? 'autogempa.json' : 'gempadirasakan.json';
-        const url = `https://data.bmkg.go.id/DataMKG/TEWS/${endpoint}`;
+        const url = `https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.json`;
 
         const response = await fetch(url);
-        if (!response.ok) throw new Error('Gagal ambil data');
+        if (!response.ok) throw new Error('Failed Fetching Data');
         
         const json = await response.json();
         

@@ -32,7 +32,7 @@ export default function Map(){
     
     const centerPosition = [-2.5489, 118.0149]; 
     const monasPosition = [-6.1754, 106.8272];
-    const { data: gempaAuto, loading, error } = bmkg('list');
+    const { data: dataGempa, loading, error } = bmkg();
     const { allCuaca, loadingCuaca } = Cuaca();
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [ sideBar, setSideBar ] = useState('gempa')
@@ -48,18 +48,16 @@ export default function Map(){
     const handleCuacaClick = (lat, lon) => {
         setSelectedPosition([lat, lon]);
     };
-    if (loading) return <p>Sedang memuat...</p>;
-    if (error) return <p>Error: {error}</p>;
+    if (loading) 
+        return <p>Loading...</p>;
+    if (error) 
+        return <p>Error: {error}</p>;
     
     return (
         <div className="relative h-screen w-full border-gray-200 rounded-xl shadow-lg overflow-hidden">
-            <div className="absolute top-0 left-0 w-full z-1001 pointer-events-none">
-                <Navbar 
-                activeTab={activeTab} 
-                setActiveTab={setActiveTab} 
-                onOpenForm={() => setShowForm(true)} 
-                onOpenData={() => setShowData(true)}/>
-            </div>
+            <nav className="absolute top-0 left-0 w-full z-1001 pointer-events-none">
+                <Navbar activeTab={activeTab} setActiveTab={setActiveTab}/>
+            </nav>
             <div className="absolute w-full h-full right-0 z-999 pointer-events-none">
                 <div className="flex justify-end h-full items-center">
                     <div onClick={() => setActiveSideBar(!activeSideBar)} className={`hover:bg-gray-200 transition-colors cursor-pointer bg-white h-[10%] w-[1.5%] pointer-events-auto rounded-l-2xl flex justify-center items-center`}>
@@ -78,7 +76,7 @@ export default function Map(){
                         </div>
                         {sideBar === 'gempa' && (
                             <div>
-                                {gempaAuto.map((gempa, idx) => (
+                                {dataGempa.map((gempa, idx) => (
                                     <div key={idx} onClick={() => handleGempaClick(gempa.Coordinates)} className="p-4 border-b border-gray-200 text-sm cursor-pointer hover:bg-blue-50 transition">
                                         <h2 className="font-bold text-gray-800">{gempa.Wilayah}</h2>
                                         <div className="flex justify-between mt-2">
@@ -126,7 +124,7 @@ export default function Map(){
                     </div>
                 </div>
             </div>
-            <MapContainer gempaList={gempaAuto} selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
+            <MapContainer gempaList={dataGempa} selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
                 <Marker position={monasPosition}>
@@ -138,7 +136,7 @@ export default function Map(){
                         </div>
                     </Popup>
                 </Marker>
-                {gempaAuto.map((gempa, idx) => {
+                {dataGempa.map((gempa, idx) => {
                     const coordinatesArray = gempa.Coordinates.split(',').map(parseFloat);
                     return (
                         <Marker key={idx} position={coordinatesArray}>

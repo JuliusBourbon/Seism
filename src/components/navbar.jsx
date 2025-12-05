@@ -18,20 +18,20 @@ export default function Navbar({ activeTab, setActiveTab, onOpenData, onOpenForm
         return `${baseClass} ${activeTab === tabName ? activeClass : inactiveClass}`;
     };
     return(
-        <nav className="flex pointer-events-none justify-center mt-7 relative z-50">
+        <div className="flex pointer-events-none justify-center mt-7 relative z-50">
             <div className="bg-blue-800 text-white rounded-3xl pointer-events-auto shadow-xl">
                 <div className="flex gap-1">
                     <NavLink className={navClass('home')} onClick={() => setActiveTab('home')} to='/'>
                         <h1>Home</h1>
                     </NavLink>
-                    <div className={navClass('data')} onClick={() => {setActiveTab('data'); if(onOpenData) onOpenData();}}>
+                    <button className={navClass('data')} onClick={() => {setActiveTab('data'); if(onOpenData) onOpenData();}}>
                         <h1>Table</h1>
-                    </div>
-                    <div className={navClass('form')} onClick={() => {setActiveTab('form'); if(onOpenForm) onOpenForm();}} >
+                    </button>
+                    <button className={navClass('form')} onClick={() => {setActiveTab('form'); if(onOpenForm) onOpenForm();}} >
                         <h1>Form</h1>
-                    </div>
+                    </button>
                 </div>
             </div>
-        </nav>
+        </div>
     )
 }
