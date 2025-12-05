@@ -21,7 +21,7 @@ db.connect((err) => {
 });
 
 
-// Endpoint
+// Endpoint Post
 app.post('/api/reports', (req, res) => {
     const { user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at, resolved_at } = req.body;
 
@@ -38,6 +38,27 @@ app.post('/api/reports', (req, res) => {
             return res.status(500).send("Failed to create Report");
         }
         res.send("Report succesfully created");
+    });
+});
+
+// Endpoint Get
+app.get('/api/reports', (req, res) => {
+    const sql = `
+        SELECT 
+            reports.*, 
+            users.username AS reporter_name 
+        FROM reports 
+        JOIN users ON reports.user_id = users.id
+        ORDER BY reports.created_at DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Failed to fetch data:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+        
+        res.json(results);
     });
 });
 

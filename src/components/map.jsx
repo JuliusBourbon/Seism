@@ -5,6 +5,7 @@ import bmkg from "../API/bmkg.js"
 import Cuaca from "../API/cuaca.js";
 import Form from "./form.jsx";
 import Table from "./table.jsx";
+import Reports from "../API/reports.js";
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
@@ -37,6 +38,7 @@ export default function Map(){
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [ sideBar, setSideBar ] = useState('gempa')
     const [ activeSideBar, setActiveSideBar ] = useState(true)
+    const { reports, loading: loadingReports } = Reports();
 
     const handleGempaClick = (coordinateString) => {
         const coords = coordinateString.split(',').map(parseFloat);
@@ -124,7 +126,7 @@ export default function Map(){
                     </div>
                 </div>
             </div>
-            <MapContainer gempaList={dataGempa} selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
+            <MapContainer selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
                 <Marker position={monasPosition}>
@@ -177,6 +179,26 @@ export default function Map(){
                                             </h1>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+                        </Popup>
+                    </Marker>
+                ))}
+                {reports && reports.map((report) => (
+                    <Marker 
+                        key={`report-${report.id}`}
+                        position={[report.lat, report.lon]}>
+                        <Popup>
+                            <div className="max-w-xs">
+                                <h3 className="font-bold text-red-600 uppercase text-sm mb-1">
+                                    🚨 report Warga: {report.type}
+                                </h3>
+                                <h4 className="font-bold text-base">{report.title}</h4>
+                                <p className="text-sm text-gray-600 mt-1">"{report.description}"</p>
+                                
+                                <div className="mt-2 text-xs text-gray-400">
+                                    📍 {report.location_name} <br/>
+                                    👍 {report.upvotes} Validasi
                                 </div>
                             </div>
                         </Popup>
