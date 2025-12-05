@@ -19,11 +19,7 @@ const FlyToLocation = ({ coords }) => {
 
 export default function Map(){
     const [activeTab, setActiveTab] = useState('home')
-    const [showForm, setShowForm] = useState(false)
-    const [showData, setShowData] = useState(false)
     const handleCloseForm = () => {
-        setShowForm(false);
-        setShowData(false);
         setActiveTab('home');
     };
 
@@ -57,7 +53,7 @@ export default function Map(){
     
     return (
         <div className="relative h-screen w-full border-gray-200 rounded-xl shadow-lg overflow-hidden">
-            <div className="absolute top-0 left-0 w-full z-1000 pointer-events-none">
+            <div className="absolute top-0 left-0 w-full z-1001 pointer-events-none">
                 <Navbar 
                 activeTab={activeTab} 
                 setActiveTab={setActiveTab} 
@@ -195,13 +191,17 @@ export default function Map(){
                 </div>
             </div> 
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
-                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${showData ? 'flex' : 'hidden'}`}>
-                    <Table onClose={handleCloseForm}/>
+                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'data' ? 'flex' : 'hidden'}`}>
+                    {activeTab === 'data' && (
+                        <Table onClose={handleCloseForm}/>
+                    )}
                 </div>
             </div>
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
-                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${showForm ? 'flex' : 'hidden'}`}>
-                    <Form onClose={handleCloseForm}/>
+                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
+                    {activeTab === 'form' && (
+                        <Form onClose={handleCloseForm}/>
+                    )}
                 </div>
             </div>
         </div>
