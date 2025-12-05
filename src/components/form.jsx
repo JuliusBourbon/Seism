@@ -14,8 +14,8 @@ export default function Form({onClose}) {
         const dataToSend = {
             ...formData,
             user_id: 1,
-            latitude: -6.2088,
-            longitude: 106.8456,
+            lat: -6.2088,
+            lon: 106.8456,
             location_name: "Jakarta (Dummy)" 
         };
 
@@ -64,7 +64,7 @@ export default function Form({onClose}) {
                 />
 
                 <button type="submit" className="cursor-pointer bg-red-600 text-white p-2 rounded">
-                    Kirim Laporan 🚀
+                    Kirim Laporan
                 </button>
             </form>
         </div>
