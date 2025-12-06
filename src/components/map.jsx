@@ -18,7 +18,7 @@ const FlyToLocation = ({ coords }) => {
     return null;
 };
 
-export default function Map(){
+export default function Map({ currentUser }){
     const [activeTab, setActiveTab] = useState('home')
     const handleCloseForm = () => {
         setActiveTab('home');
@@ -220,7 +220,7 @@ export default function Map(){
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
                 <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'form' && (
-                        <Form onClose={handleCloseForm}/>
+                        <Form currentUser={currentUser} onClose={handleCloseForm}/>
                     )}
                 </div>
             </div>

@@ -41,6 +41,46 @@ app.post('/api/reports', (req, res) => {
     });
 });
 
+app.post('/api/auth/guest', (req, res) => {
+    const { device_id } = req.body;
+
+    if (!device_id) {
+        return res.status(400).json({error: "Device Id not detected"})
+    }
+
+    const checkSql = 'Select * from users where user_identifier = ?';
+
+    db.query(checkSql, [device_id], (err, results) => {
+        if (err) return res.status(500).json({error: err.message});
+
+        if (results.length > 0) {
+            return res.json({
+                message: "Device Id found",
+                user: results[0]
+            });
+        } else {
+            const insertSql = `insert into users (user_identifier, username, role)
+                values (?, 'Anonymous', 'guest')`;
+            
+            db.query(insertSql, [device_id], (err, result) => {
+                if (err) return res.status(500).json({error: err.message});
+
+                const newUser = {
+                    id: result.insertId,
+                    user_identifier: device_id,
+                    username: 'Anonymous',
+                    role: 'guest'
+                };
+
+                return res.json({
+                    message: "Device Id not found, Creating new User",
+                    user: newUser
+                })
+            })
+        }
+    })
+})
+
 // Endpoint Get
 app.get('/api/reports', (req, res) => {
     const sql = `

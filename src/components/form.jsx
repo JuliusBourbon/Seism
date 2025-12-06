@@ -1,11 +1,10 @@
 import { useState } from "react"
 
-export default function Form({onClose}) {
+export default function Form({onClose, currentUser}) {
     const [formData, setFormData] = useState({
-        user_id: '',
         user_name: '',
         title: '',
-        type: '',
+        type: 'Banjir',
         description: '',
         lat: '',
         lon: '',
@@ -15,10 +14,18 @@ export default function Form({onClose}) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const dataToSend = {
-            ...formData,
-            user_id: 1,
-        };
+        if (!currentUser) {
+            alert("Loading User data, please wait..");
+            return;
+        }
+
+        const payload = {
+            user_id: currentUser.id,
+            ...formData
+        }
+
+        console.log('Sending data: ', payload)
+
 
         try {
             const response = await fetch('http://localhost:3000/api/reports', {
@@ -26,7 +33,7 @@ export default function Form({onClose}) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(dataToSend)
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
