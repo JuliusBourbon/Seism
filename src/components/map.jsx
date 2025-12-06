@@ -129,7 +129,7 @@ export default function Map(){
             <MapContainer selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
-                <Marker position={monasPosition}>
+                {/* <Marker position={monasPosition}>
                     <Popup>
                         <div className="text-center">
                             <b className="text-lg">Monas (Jakarta)</b> <br />
@@ -137,7 +137,7 @@ export default function Map(){
                             Saya belum terhubung API.
                         </div>
                     </Popup>
-                </Marker>
+                </Marker> */}
                 {dataGempa.map((gempa, idx) => {
                     const coordinatesArray = gempa.Coordinates.split(',').map(parseFloat);
                     return (
