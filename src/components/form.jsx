@@ -1,4 +1,5 @@
 import { useState } from "react"
+import LocationPicker from "./locationPicker";
 
 export default function Form({onClose, currentUser}) {
     const [formData, setFormData] = useState({
@@ -6,10 +7,18 @@ export default function Form({onClose, currentUser}) {
         title: '',
         type: 'Banjir',
         description: '',
-        lat: '',
-        lon: '',
+        lat: null,
+        lon: null,
         location_name: '',
     });
+
+    const handleLocationUpdate = (newCoords) => {
+        setFormData(prev => ({
+            ...prev,
+            lat: newCoords.lat,
+            lon: newCoords.lng
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,13 +28,17 @@ export default function Form({onClose, currentUser}) {
             return;
         }
 
+        if (!formData.lat || !formData.lon) {
+            alert("Mohon pilih lokasi kejadian di peta!");
+            return;
+        }
+
         const payload = {
             user_id: currentUser.id,
             ...formData
         }
 
         console.log('Sending data: ', payload)
-
 
         try {
             const response = await fetch('http://localhost:3000/api/reports', {
@@ -57,50 +70,58 @@ export default function Form({onClose, currentUser}) {
                 <h1>Form</h1>
             </div>
             <form onSubmit={handleSubmit} className=" mt-5 p-4 bg-white shadow rounded">
-                <input 
-                    type="text" 
-                    placeholder="Username (Boleh Anonym)"
-                    className="border p-2 w-full mb-2"
-                    onChange={(e) => setFormData({...formData, user_name: e.target.value})}
-                />
-                <input 
-                    type="text" 
-                    placeholder="Judul Laporan"
-                    className="border p-2 w-full mb-2"
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                />
-                <select className="border p-2 w-full mb-2" name="" id="" onChange={(e) => setFormData({...formData, type: e.target.value})}>
-                    <option value="Banjir">Banjir</option>
-                    <option value="Gempa">Gempa</option>
-                    <option value="Kebakaran">Kebakaran</option>
-                    <option value="Longsor">Longsor</option>
-                    <option value="Kecelakaan">Kecelakaan</option>
-                    <option value="Lainnya">Lainnya</option>
-                </select>
-                <input
-                    type="text" 
-                    placeholder="Deskripsi"
-                    className="border p-2 w-full mb-2"
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                />
-                <input 
-                    type="text" 
-                    placeholder="Latitude"
-                    className="border p-2 w-full mb-2"
-                    onChange={(e) => setFormData({...formData, lat: e.target.value})}
-                />
-                <input 
-                    type="text" 
-                    placeholder="Longtitude"
-                    className="border p-2 w-full mb-2"
-                    onChange={(e) => setFormData({...formData, lon: e.target.value})}
-                />
-                <input 
-                    type="text" 
-                    placeholder="Nama Lokasi"
-                    className="border p-2 w-full mb-2"
-                    onChange={(e) => setFormData({...formData, location_name: e.target.value})}
-                />
+                <div className="mb-1">
+                    <label className="block text-sm font-bold mb-2">Username (Boleh Anonym)</label>
+                    <input 
+                        type="text" 
+                        placeholder="Username"
+                        className="border p-2 w-full mb-2"
+                        onChange={(e) => setFormData({...formData, user_name: e.target.value})}
+                    />
+                </div>
+                <div className="mb-1">
+                    <label className="block text-sm font-bold mb-2">Judul Laporan</label>
+                    <input 
+                        type="text" 
+                        placeholder="Judul Laporan"
+                        className="border p-2 w-full mb-2"
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    />
+                </div>
+                <div className="mb-1">
+                    <label className="block text-sm font-bold mb-2">Jenis Kejadian</label>
+                    <select className="border p-2 w-full mb-2" name="" id="" onChange={(e) => setFormData({...formData, type: e.target.value})}>
+                        <option value="Banjir">Banjir</option>
+                        <option value="Gempa">Gempa</option>
+                        <option value="Kebakaran">Kebakaran</option>
+                        <option value="Longsor">Longsor</option>
+                        <option value="Kecelakaan">Kecelakaan</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div className="mb-1">
+                    <label className="block text-sm font-bold mb-2">Deskripsi Laporan</label>
+                    <input
+                        type="text" 
+                        placeholder="Deskripsi"
+                        className="border p-2 w-full mb-2"
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    />
+                </div>
+
+                <div className="mb-1">
+                    <label className="block text-sm font-bold mb-2">Lokasi Kejadian</label>
+                    <LocationPicker onLocationChange={handleLocationUpdate} />
+                </div>
+                <div className="mb-1">
+                    <label className="block text-sm font-bold mb-2">Detail Lokasi</label>
+                    <input 
+                        type="text" 
+                        placeholder="Nama Lokasi"
+                        className="border p-2 w-full mb-2"
+                        onChange={(e) => setFormData({...formData, location_name: e.target.value})}
+                    />
+                </div>
 
                 <button type="submit" className="cursor-pointer bg-red-600 text-white p-2 rounded">
                     Kirim Laporan
