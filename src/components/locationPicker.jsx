@@ -88,6 +88,13 @@ export default function LocationPicker({ onLocationChange }){
                             </button>
                         </div>
                     </div>
+                    <div className='absolute z-1000 w-full pointer-events-none top-0'>
+                        <div className='flex w-full justify-center mt-2'>
+                            <p className="text-sm text-gray-700 text-center rounded-xl bg-white px-2 py-1 pointer-events-auto">
+                                Koordinat terpilih: <span className='font-semibold'>{position.lat.toFixed(6)}, {position.lng.toFixed(6)}</span>
+                            </p>
+                        </div>
+                    </div>
                     <Marker
                         draggable={true}
                         eventHandlers={eventHandlers}
@@ -100,9 +107,6 @@ export default function LocationPicker({ onLocationChange }){
                 </MapContainer>
             </div>
 
-            <p className="text-sm text-gray-700 text-center">
-                Koordinat terpilih: {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
-            </p>
         </div>
     );
 }

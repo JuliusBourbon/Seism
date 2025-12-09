@@ -32,7 +32,6 @@ export default function Map({ currentUser }){
     });
     
     const centerPosition = [-2.5489, 118.0149]; 
-    const monasPosition = [-6.1754, 106.8272];
     const { data: dataGempa, loading, error } = bmkg();
     const { allCuaca, loadingCuaca } = Cuaca();
     const [selectedPosition, setSelectedPosition] = useState(null);
@@ -129,15 +128,6 @@ export default function Map({ currentUser }){
             <MapContainer selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
-                {/* <Marker position={monasPosition}>
-                    <Popup>
-                        <div className="text-center">
-                            <b className="text-lg">Monas (Jakarta)</b> <br />
-                            Ini adalah marker contoh. <br />
-                            Saya belum terhubung API.
-                        </div>
-                    </Popup>
-                </Marker> */}
                 {dataGempa.map((gempa, idx) => {
                     const coordinatesArray = gempa.Coordinates.split(',').map(parseFloat);
                     return (
@@ -217,8 +207,8 @@ export default function Map({ currentUser }){
                     )}
                 </div>
             </div>
-            <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
-                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
+            <div className="absolute w-full h-full top-0 z-1000 pointer-events-none shadow-2xl">
+                <div className={`shadow-2xl justify-center h-full items-center bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'form' && (
                         <Form currentUser={currentUser} onClose={handleCloseForm}/>
                     )}

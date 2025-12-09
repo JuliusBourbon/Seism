@@ -60,22 +60,19 @@ export default function Form({onClose, currentUser}) {
         }
     };
     return(
-        <div className="bg-white rounded-lg w-[90%] h-[80%] relative pointer-events-auto border shadow-2xl">
-            <div className="absolute z-1 w-full">
+        <div className="p-4 bg-white w-[90%] h-[80%] flex justify-center items-center relative pointer-events-auto rounded-[34px]">
+            <div className="absolute top-0 z-1 w-full">
                 <div className="flex justify-end mr-7 mt-5">
-                    <h1 onClick={onClose} className="px-2 rounded-md text-center cursor-pointer hover:font-bold hover:shadow-2xl">X</h1>
+                    <button onClick={onClose} className="px-2 rounded-md text-center cursor-pointer hover:font-bold hover:shadow-2xl">✕</button>
                 </div>
             </div>
-            <div className="text-center mt-5">
-                <h1>Form</h1>
-            </div>
-            <form onSubmit={handleSubmit} className=" mt-5 p-4 bg-white shadow rounded">
+            <form onSubmit={handleSubmit} className="w-full h-full m-2 p-4 bg-white shadow-2xl rounded-[30px]">
                 <div className="mb-1">
                     <label className="block text-sm font-bold mb-2">Username (Boleh Anonym)</label>
                     <input 
                         type="text" 
                         placeholder="Username"
-                        className="border p-2 w-full mb-2"
+                        className="border p-1 w-full mb-2"
                         onChange={(e) => setFormData({...formData, user_name: e.target.value})}
                     />
                 </div>
@@ -84,13 +81,13 @@ export default function Form({onClose, currentUser}) {
                     <input 
                         type="text" 
                         placeholder="Judul Laporan"
-                        className="border p-2 w-full mb-2"
+                        className="border p-1 w-full mb-2"
                         onChange={(e) => setFormData({...formData, title: e.target.value})}
                     />
                 </div>
                 <div className="mb-1">
                     <label className="block text-sm font-bold mb-2">Jenis Kejadian</label>
-                    <select className="border p-2 w-full mb-2" name="" id="" onChange={(e) => setFormData({...formData, type: e.target.value})}>
+                    <select className="border p-1 w-full mb-2" name="" id="" onChange={(e) => setFormData({...formData, type: e.target.value})}>
                         <option value="Banjir">Banjir</option>
                         <option value="Gempa">Gempa</option>
                         <option value="Kebakaran">Kebakaran</option>
@@ -104,7 +101,7 @@ export default function Form({onClose, currentUser}) {
                     <input
                         type="text" 
                         placeholder="Deskripsi"
-                        className="border p-2 w-full mb-2"
+                        className="border p-1 w-full mb-2"
                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                     />
                 </div>
@@ -117,8 +114,8 @@ export default function Form({onClose, currentUser}) {
                     <label className="block text-sm font-bold mb-2">Detail Lokasi</label>
                     <input 
                         type="text" 
-                        placeholder="Nama Lokasi"
-                        className="border p-2 w-full mb-2"
+                        placeholder="Detail Lokasi"
+                        className="border p-1 w-full mb-2"
                         onChange={(e) => setFormData({...formData, location_name: e.target.value})}
                     />
                 </div>
