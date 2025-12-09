@@ -14,7 +14,7 @@ const RecenterAutomatically = ({ lat, lng }) => {
   const map = useMap();
   useEffect(() => {
     if (lat && lng) {
-      map.flyTo([lat, lng], 15);
+      map.flyTo([lat, lng]);
     }
   }, [lat, lng, map]);
   return null;
