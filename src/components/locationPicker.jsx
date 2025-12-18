@@ -67,8 +67,7 @@ export default function LocationPicker({ onLocationChange }){
 
     return (
         <div className="space-y-3">
-               
-            <div className="h-64 w-full rounded-lg border-2 border-gray-300 overflow-hidden relative z-0">
+            <div className="h-64 w-full  rounded-lg border border-black/30 overflow-hidden relative z-0">
                 <MapContainer center={position} zoom={13} className="h-full w-full">
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     <RecenterAutomatically lat={position.lat} lng={position.lng} />
