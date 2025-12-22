@@ -207,8 +207,8 @@ export default function Map({ currentUser }){
                     )}
                 </div>
             </div>
-            <div className="absolute w-full h-full top-0 z-1000 pointer-events-none shadow-2xl">
-                <div className={`shadow-2xl justify-center h-full items-center bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
+            <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
+                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'form' && (
                         <Form currentUser={currentUser} onClose={handleCloseForm}/>
                     )}

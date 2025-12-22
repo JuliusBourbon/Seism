@@ -60,7 +60,7 @@ export default function Form({onClose, currentUser}) {
         }
     };
     return(
-        <div className="p-4 bg-white w-[95%] h-[85%] mt-15 flex justify-center items-center relative pointer-events-auto rounded-2xl">
+        <div className="bg-white rounded-2xl w-[95%] h-[85%] relative pointer-events-auto shadow-2xl mt-15">
             <div className="absolute top-0 z-1 w-full">
                 <div className="flex justify-end mr-7 mt-5">
                     <button onClick={onClose} className="px-2 rounded-md text-center cursor-pointer hover:font-bold hover:shadow-2xl">✕</button>
@@ -68,7 +68,7 @@ export default function Form({onClose, currentUser}) {
             </div>
             <div className="w-full h-full flex flex-col justify-between items-center">
                 <div className="flex mt-5 justify-center text-3xl font-semibold">
-                    <h1>Table</h1>
+                    <h1>Form Laporan Bencana</h1>
                 </div>
                 <form onSubmit={handleSubmit} className="w-[95%] h-[85%] mb-10 rounded-2xl shadow-[0px_2px_20px_rgba(0,0,0,0.35)] flex flex-col items-center justify-center">
                     <div className="flex flex-col w-full my-5 gap-2">
@@ -93,7 +93,7 @@ export default function Form({onClose, currentUser}) {
                             </div>
                             <div className="mb-1">
                                 <label className="block font-bold mb-2">Jenis Kejadian</label>
-                                <select className="border border-black/30 p-1 w-full mb-2 rounded-lg" name="" id="" onChange={(e) => setFormData({...formData, type: e.target.value})}>
+                                <select className="border border-black/30 p-1 mb-2 w-50 rounded-lg" name="" id="" onChange={(e) => setFormData({...formData, type: e.target.value})}>
                                     <option value="Banjir">Banjir</option>
                                     <option value="Gempa">Gempa</option>
                                     <option value="Kebakaran">Kebakaran</option>
