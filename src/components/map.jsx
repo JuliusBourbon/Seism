@@ -7,6 +7,7 @@ import Form from "./form.jsx";
 import Table from "./table.jsx";
 import Reports from "../API/reports.js";
 import Sidebar from "./sidebar.jsx";
+import LegendsBar from "./legendsBar.jsx";
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
@@ -51,6 +52,9 @@ export default function Map({ currentUser }){
             </nav>
             <div className="absolute w-full h-full right-0 z-999 pointer-events-none">
                 <Sidebar dataGempa={dataGempa} loadingCuaca={loadingCuaca} allCuaca={allCuaca} onLocationSelect={setSelectedPosition}/>
+            </div>
+            <div className="absolute w-full h-full left-0 z-999 pointer-events-none">
+                <LegendsBar />
             </div>
             <MapContainer selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
