@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 
-export default function LegendsBar() {
+export default function LegendsBar({ markers, isCheck, toggleMarker }) {
     const [isOpen, setIsOpen] = useState(true);
-
-    const legendsData = [
-        { id: 1, label: 'Pin 1', color: 'bg-red-500' },
-        { id: 2, label: 'Pin 2', color: 'bg-blue-500' },
-        { id: 3, label: 'Pin 3', color: 'bg-green-500' },
-        { id: 4, label: 'Pin 4', color: 'bg-yellow-500' },
-    ];
 
     return (
         <div className="flex h-screen relative">
@@ -20,24 +13,27 @@ export default function LegendsBar() {
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                        {legendsData.map((item) => (
-                            <div key={item.id} className="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-md shadow-sm ${item.color} flex items-center justify-center`}>
-                                         <span className="text-white/50 text-[10px]">Img</span>
+                        {markers.map((marker) => {
+                            const isVisible = isCheck[marker.id];
+                            return (
+                                <div key={marker.id} className="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => toggleMarker(marker.id)}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-md shadow-sm flex items-center justify-center`}>
+                                            <span className="">{marker.icon}</span>
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-700">{marker.label}</span>
                                     </div>
-                                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
-                                </div>
 
-                                <div>
-                                    <input 
-                                        type="checkbox" 
-                                        defaultChecked 
-                                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
-                                    />
+                                    <div>
+                                        <div className={`w-6 h-6 flex items-center rounded-sm p-1 duration-200 ease-in-out ${isVisible ? 'bg-blue-600' : 'bg-gray-300'}`}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 

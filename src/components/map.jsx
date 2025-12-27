@@ -8,6 +8,7 @@ import Table from "./table.jsx";
 import Reports from "../API/reports.js";
 import Sidebar from "./sidebar.jsx";
 import LegendsBar from "./legendsBar.jsx";
+import L from 'leaflet';
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
@@ -21,9 +22,27 @@ const FlyToLocation = ({ coords }) => {
 };
 
 export default function Map({ currentUser }){
+    const [isCheck, setIsCheck] = useState({
+        gempa: true,
+        cuaca: true,
+        reports: true
+    });
     const [activeTab, setActiveTab] = useState('home')
-    const handleCloseForm = () => {
+    const handleCloseTab = () => {
         setActiveTab('home');
+    };
+
+    const markerData = [
+        { id: 'gempa', label: 'Gempa Bumi', icon: '🌋' },
+        { id: 'cuaca', label: 'Cuaca', icon: '⛅' },
+        { id: 'reports', label: 'Laporan Warga', icon: '📢' },
+    ];
+
+    const toggleMarker = (markerId) => {
+        setIsCheck(prev => ({
+            ...prev,
+            [markerId]: !prev[markerId]
+        }));
     };
 
     const cloudIcon = new L.DivIcon({
@@ -54,12 +73,13 @@ export default function Map({ currentUser }){
                 <Sidebar dataGempa={dataGempa} loadingCuaca={loadingCuaca} allCuaca={allCuaca} onLocationSelect={setSelectedPosition}/>
             </div>
             <div className="absolute w-full h-full left-0 z-999 pointer-events-none">
-                <LegendsBar />
+                <LegendsBar markers={markerData} isCheck={isCheck} toggleMarker={toggleMarker}/>
             </div>
             <MapContainer selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
-                {dataGempa.map((gempa, idx) => {
+
+                {isCheck.gempa && dataGempa.map((gempa, idx) => {
                     const coordinatesArray = gempa.Coordinates.split(',').map(parseFloat);
                     return (
                         <Marker key={idx} position={coordinatesArray}>
@@ -73,12 +93,12 @@ export default function Map({ currentUser }){
                         </Marker>
                     );
                 })}
-                {!loadingCuaca && allCuaca.map((item) => (
+                {isCheck.cuaca && !loadingCuaca && allCuaca.map((item) => (
                     <Marker 
                         key={`cuaca-${item.id}`}
                         position={[item.lokasi.lat, item.lokasi.lon]}
                         icon={cloudIcon}
-                    >
+                    > 
                         <Popup>
                             <div className="flex flex-col text-center gap-3 min-w-[100px]">
                                 <div>
@@ -105,7 +125,7 @@ export default function Map({ currentUser }){
                         </Popup>
                     </Marker>
                 ))}
-                {reports && reports.map((report) => (
+                {isCheck.reports && reports && reports.map((report) => (
                     <Marker 
                         key={`report-${report.id}`}
                         position={[report.lat, report.lon]}>
@@ -134,14 +154,14 @@ export default function Map({ currentUser }){
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
                 <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'data' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'data' && (
-                        <Table onClose={handleCloseForm}/>
+                        <Table onClose={handleCloseTab}/>
                     )}
                 </div>
             </div>
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
                 <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'form' && (
-                        <Form currentUser={currentUser} onClose={handleCloseForm}/>
+                        <Form currentUser={currentUser} onClose={handleCloseTab}/>
                     )}
                 </div>
             </div>
