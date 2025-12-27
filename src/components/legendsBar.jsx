@@ -12,7 +12,7 @@ export default function LegendsBar() {
 
     return (
         <div className="flex h-screen relative">
-            <div className={`fixed top-4 left-4 h-[90%] flex flex-row items-start z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-[calc(100%-15px)]'}`}>
+            <div className={`fixed top-4 left-4 h-[90%] flex items-center z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-[calc(95%-15px)]'}`}>
                 <div className="bg-white/90 backdrop-blur-md shadow-xl border border-white/20 h-full w-64 rounded-2xl flex flex-col overflow-hidden pointer-events-auto">
                     <div className="bg-gray-50/80 p-4 border-b border-gray-100">
                         <h1 className="font-bold text-gray-800 text-lg">Map Legends</h1>
@@ -41,7 +41,7 @@ export default function LegendsBar() {
                     </div>
                 </div>
 
-                <button onClick={() => setIsOpen(!isOpen)} className="mt-6 -ml-4 bg-white shadow-md border border-gray-100 h-10 w-8 rounded-r-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 active:scale-95 transition-all pointer-events-auto" aria-label="Toggle Sidebar">
+                <button onClick={() => setIsOpen(!isOpen)} className="mt-6 -ml-1 bg-white shadow-md border border-gray-100 h-20 w-10 rounded-r-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 active:scale-95 transition-all pointer-events-auto" aria-label="Toggle Sidebar">
                     <svg 
                         className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`} 
                         width="20px" 
