@@ -9,6 +9,8 @@ import Reports from "../API/reports.js";
 import Sidebar from "./sidebar.jsx";
 import LegendsBar from "./legendsBar.jsx";
 import L from 'leaflet';
+import { blueMarker, redMarker, cloudMarker } from "../../public/markerIcon.js";
+import blueLegend from 'leaflet/dist/images/marker-icon.png';
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
@@ -32,10 +34,28 @@ export default function Map({ currentUser }){
         setActiveTab('home');
     };
 
+
     const markerData = [
-        { id: 'gempa', label: 'Gempa Bumi', icon: '🌋' },
-        { id: 'cuaca', label: 'Cuaca', icon: '⛅' },
-        { id: 'reports', label: 'Laporan Warga', icon: '📢' },
+        { 
+            id: 'gempa', 
+            label: 'Gempa Bumi', 
+            icon: blueMarker, 
+            legend: <img src={blueLegend} alt="marker" className="w-5 h-8" /> 
+        },
+        { 
+            id: 'cuaca', 
+            label: 'Cuaca', 
+            icon: cloudMarker, 
+            legend: (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#ffffff" class="icon icon-tabler icons-tabler-filled icon-tabler-cloud"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.04 4.305c2.195 -.667 4.615 -.224 6.36 1.176c1.386 1.108 2.188 2.686 2.252 4.34l.003 .212l.091 .003c2.3 .107 4.143 1.961 4.25 4.27l.004 .211c0 2.407 -1.885 4.372 -4.255 4.482l-.21 .005h-11.878l-.222 -.008c-2.94 -.11 -5.317 -2.399 -5.43 -5.263l-.005 -.216c0 -2.747 2.08 -5.01 4.784 -5.417l.114 -.016l.07 -.181c.663 -1.62 2.056 -2.906 3.829 -3.518l.244 -.08z" /></svg>
+            ) 
+        },
+        { 
+            id: 'reports', 
+            label: 'Laporan Warga', 
+            icon: redMarker,
+            legend: <img src='https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png' alt="marker" className="w-5 h-8" /> 
+        },
     ];
 
     const toggleMarker = (markerId) => {
@@ -44,13 +64,6 @@ export default function Map({ currentUser }){
             [markerId]: !prev[markerId]
         }));
     };
-
-    const cloudIcon = new L.DivIcon({
-        html: '<div style="font-size: 24px;">⛅</div>',
-        className: 'bg-transparent',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-    });
     
     const centerPosition = [-2.5489, 118.0149]; 
     const { data: dataGempa, loading, error } = bmkg();
@@ -82,7 +95,7 @@ export default function Map({ currentUser }){
                 {isCheck.gempa && dataGempa.map((gempa, idx) => {
                     const coordinatesArray = gempa.Coordinates.split(',').map(parseFloat);
                     return (
-                        <Marker key={idx} position={coordinatesArray}>
+                        <Marker key={idx} position={coordinatesArray} icon={blueMarker}>
                             <Popup>
                                 <div className="text-center flex flex-col gap-3">
                                     <h1 className="font-bold text-lg">{gempa.Wilayah}</h1>
@@ -97,7 +110,7 @@ export default function Map({ currentUser }){
                     <Marker 
                         key={`cuaca-${item.id}`}
                         position={[item.lokasi.lat, item.lokasi.lon]}
-                        icon={cloudIcon}
+                        icon={cloudMarker}
                     > 
                         <Popup>
                             <div className="flex flex-col text-center gap-3 min-w-[100px]">
@@ -128,7 +141,8 @@ export default function Map({ currentUser }){
                 {isCheck.reports && reports && reports.map((report) => (
                     <Marker 
                         key={`report-${report.id}`}
-                        position={[report.lat, report.lon]}>
+                        position={[report.lat, report.lon]}
+                        icon={redMarker}>
                         <Popup>
                             <div className="max-w-xs">
                                 <h3 className="font-bold text-red-600 uppercase text-sm mb-1">

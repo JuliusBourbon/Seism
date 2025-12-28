@@ -19,7 +19,7 @@ export default function LegendsBar({ markers, isCheck, toggleMarker }) {
                                 <div key={marker.id} className="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => toggleMarker(marker.id)}>
                                     <div className="flex items-center gap-3">
                                         <div className={`w-8 h-8 rounded-md shadow-sm flex items-center justify-center`}>
-                                            <span className="">{marker.icon}</span>
+                                            <span className="">{marker.legend}</span>
                                         </div>
                                         <span className="text-sm font-medium text-gray-700">{marker.label}</span>
                                     </div>
