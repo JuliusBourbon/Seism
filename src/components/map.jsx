@@ -9,7 +9,7 @@ import Reports from "../API/reports.js";
 import Sidebar from "./sidebar.jsx";
 import LegendsBar from "./legendsBar.jsx";
 import L from 'leaflet';
-import { blueMarker, redMarker, cloudMarker } from "../../public/markerIcon.js";
+import { blueMarker, redMarker, cloudMarker } from "../assets/markerIcon.js";
 import blueLegend from 'leaflet/dist/images/marker-icon.png';
 
 const FlyToLocation = ({ coords }) => {
