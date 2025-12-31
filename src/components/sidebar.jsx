@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Sidebar({ dataGempa, loadingCuaca, allCuaca, onLocationSelect }) {
+export default function Sidebar({ dataGempa, loadingCuaca, allCuaca, onLocationSelect, dataReports }) {
     const [sideBar, setSideBar] = useState('gempa');
     const [activeSideBar, setActiveSideBar] = useState(true);
 
@@ -13,7 +13,7 @@ export default function Sidebar({ dataGempa, loadingCuaca, allCuaca, onLocationS
         setSideBar(tab);
     };
 
-    const handleCuacaClick = (lat, lon) => {
+    const handleCoorClick = (lat, lon) => {
         onLocationSelect([lat, lon]);
     };
 
@@ -48,6 +48,16 @@ export default function Sidebar({ dataGempa, loadingCuaca, allCuaca, onLocationS
                                 onClick={() => handleSideBar('gempa')}
                             >
                                 Gempa
+                            </button>
+                            <button 
+                                className={`flex-1 py-1.5 text-sm font-semibold rounded-md cursor-pointer transition-all duration-200 ${
+                                    sideBar === 'laporan' 
+                                    ? 'bg-white text-blue-600 shadow-sm' 
+                                    : 'text-gray-500 hover:text-gray-700'
+                                }`} 
+                                onClick={() => handleSideBar('laporan')}
+                            >
+                                Laporan
                             </button>
                             <button 
                                 className={`flex-1 py-1.5 text-sm font-semibold rounded-md cursor-pointer transition-all duration-200 ${
@@ -94,7 +104,7 @@ export default function Sidebar({ dataGempa, loadingCuaca, allCuaca, onLocationS
                                     allCuaca.map((item) => (
                                         <div 
                                             key={item.id} 
-                                            onClick={() => handleCuacaClick(item.lokasi.lat, item.lokasi.lon)} 
+                                            onClick={() => handleCoorClick(item.lokasi.lat, item.lokasi.lon)} 
                                             className="p-4 hover:bg-blue-50/80 cursor-pointer transition-colors"
                                         >
                                             <div className="mb-3 border-b border-gray-100 pb-2">
@@ -124,6 +134,42 @@ export default function Sidebar({ dataGempa, loadingCuaca, allCuaca, onLocationS
                                         </div>
                                     ))
                                 )}
+                            </div>
+                        )}
+                        {sideBar === 'laporan' && (
+                            <div className="divide-y divide-gray-100">
+                                {dataReports.map((report, idx) => {
+                                    const date = new Date(report.created_at)
+                                    const formatted = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()} 
+                                        ${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
+                                    return(
+                                        <div key={idx} onClick={() => handleCoorClick(report.lat, report.lon)} className="p-4 hover:bg-blue-50/80 cursor-pointer transition-colors group">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <h1 className="font-bold text-gray-800 text-sm leading-tight group-hover:text-blue-700 transition-colors w-2/3">
+                                                    {report.title}
+                                                </h1>
+                                                <span className={`border px-2 py-0.5 rounded text-[12px] font-bold whitespace-nowrap ${magClassName(report.Magnitude)}`}>
+                                                    {report.type}
+                                                </span>
+                                            </div>
+                                            <div className="text-sm text-gray-600">
+                                                <h3>
+                                                    {report.location_name}
+                                                </h3>
+                                            </div>
+                                            <div className="flex justify-between gap-1 text-xs text-gray-400 mt-2">
+                                                <div className="flex gap-1 items-center">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                                    {formatted}
+                                                </div>
+                                                <div className="flex gap-1 items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-user"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg>
+                                                    {report.user_name}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )    
+                                })}
                             </div>
                         )}
                     </div>

@@ -83,7 +83,7 @@ export default function Map({ currentUser }){
                 <Navbar activeTab={activeTab} setActiveTab={setActiveTab}/>
             </nav>
             <div className="absolute w-full h-full right-0 z-999 pointer-events-none">
-                <Sidebar dataGempa={dataGempa} loadingCuaca={loadingCuaca} allCuaca={allCuaca} onLocationSelect={setSelectedPosition}/>
+                <Sidebar dataGempa={dataGempa} dataReports={reports} loadingCuaca={loadingCuaca} allCuaca={allCuaca} onLocationSelect={setSelectedPosition}/>
             </div>
             <div className="absolute w-full h-full left-0 z-999 pointer-events-none">
                 <LegendsBar markers={markerData} isCheck={isCheck} toggleMarker={toggleMarker}/>
