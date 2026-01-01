@@ -11,6 +11,8 @@ import LegendsBar from "./legendsBar.jsx";
 import L from 'leaflet';
 import { blueMarker, redMarker, cloudMarker } from "../assets/markerIcon.js";
 import blueLegend from 'leaflet/dist/images/marker-icon.png';
+import Profile from "./profile.jsx";
+import Help from "./help.jsx";
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
@@ -176,6 +178,20 @@ export default function Map({ currentUser }){
                 <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'form' && (
                         <Form currentUser={currentUser} onClose={handleCloseTab}/>
+                    )}
+                </div>
+            </div>
+            <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
+                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'profile' ? 'flex' : 'hidden'}`}>
+                    {activeTab === 'profile' && (
+                        <Profile onClose={handleCloseTab}/>
+                    )}
+                </div>
+            </div>
+            <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
+                <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'help' ? 'flex' : 'hidden'}`}>
+                    {activeTab === 'help' && (
+                        <Help onClose={handleCloseTab}/>
                     )}
                 </div>
             </div>
