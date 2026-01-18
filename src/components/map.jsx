@@ -13,6 +13,7 @@ import { blueMarker, redMarker, cloudMarker } from "../assets/markerIcon.js";
 import blueLegend from 'leaflet/dist/images/marker-icon.png';
 import Profile from "./profile.jsx";
 import Help from "./help.jsx";
+import ReportPopup from "./reportPopup.jsx";
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
@@ -140,24 +141,13 @@ export default function Map({ currentUser }){
                         </Popup>
                     </Marker>
                 ))}
-                {isCheck.reports && reports && reports.map((report) => (
+                {isCheck.reports && reports && reports.map((item) => (
                     <Marker 
-                        key={`report-${report.id}`}
-                        position={[report.lat, report.lon]}
+                        key={item.id} 
+                        position={[item.lat, item.lon]}
                         icon={redMarker}>
-                        <Popup>
-                            <div className="max-w-xs">
-                                <h3 className="font-bold text-red-600 uppercase text-sm mb-1">
-                                    🚨 report Warga: {report.type}
-                                </h3>
-                                <h4 className="font-bold text-base">{report.title}</h4>
-                                <p className="text-sm text-gray-600 mt-1">"{report.description}"</p>
-                                
-                                <div className="mt-2 text-xs text-gray-400">
-                                    📍 {report.location_name} <br/>
-                                    👍 {report.upvotes} Validasi
-                                </div>
-                            </div>
+                        <Popup className="request-popup">
+                            <ReportPopup report={item}/>
                         </Popup>
                     </Marker>
                 ))}

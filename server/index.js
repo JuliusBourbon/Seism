@@ -26,7 +26,7 @@ db.connect((err) => {
 const storage = multer.diskStorage({
     // Lokasi folder
     destination: (req, file, cb) => {
-        cb(null, '../uploads/');
+        cb(null, path.join(__dirname, 'uploads'));
     },
     filename: (req, file, cb) => {
         // Format file
@@ -41,7 +41,7 @@ const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
-// Endpoint Post
+// Endpoint Post Report
 app.post('/api/reports', upload.single('image'), (req, res) => {
     const { user_id, user_name, title, type, description, lat, lon, location_name } = req.body;
     const upvotes = null;
@@ -55,7 +55,7 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
         image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     }
 
-    // Query SQL Standard
+    // Query
     const sql = `INSERT INTO reports 
                  (user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -113,14 +113,13 @@ app.post('/api/auth/guest', (req, res) => {
 
 // Endpoint Get
 app.get('/api/reports', (req, res) => {
-    const sql = `
-        SELECT 
+    const sql = `SELECT 
             reports.*, 
-            users.username AS reporter_name 
-        FROM reports 
-        JOIN users ON reports.user_id = users.id
-        ORDER BY reports.created_at DESC
-    `;
+            users.username AS reporter_name,
+            users.user_identifier
+            FROM reports 
+            JOIN users ON reports.user_id = users.id
+            ORDER BY reports.created_at DESC`;
 
     db.query(sql, (err, results) => {
         if (err) {
