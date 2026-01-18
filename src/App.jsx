@@ -3,6 +3,7 @@ import { getDeviceId } from './Data/deviceId'
 import { Routes, Route, useLocation  } from 'react-router-dom'
 import './App.css'
 import Map from './components/map'
+import LandingPage from './components/landingPage'
 
 export default function App(){
   const [currentUser, setCurrentUser] = useState(null);
@@ -35,7 +36,8 @@ export default function App(){
     <div>
       <main>
         <Routes>
-          <Route path='/' element={<Map currentUser={currentUser}/>}/>
+          <Route path='/' element={<LandingPage/>}/>
+          <Route path='/Map' element={<Map currentUser={currentUser}/>}/>
         </Routes>
       </main>
     </div>

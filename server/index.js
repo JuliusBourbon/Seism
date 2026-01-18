@@ -2,6 +2,9 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mysql from 'mysql2';
 import cors from 'cors';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
 dotenv.config();
@@ -20,17 +23,44 @@ db.connect((err) => {
     console.log('Connected to database');
 });
 
+const storage = multer.diskStorage({
+    // Lokasi folder
+    destination: (req, file, cb) => {
+        cb(null, '../uploads/');
+    },
+    filename: (req, file, cb) => {
+        // Format file
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+})
+const upload = multer({ storage: storage });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Endpoint Post
-app.post('/api/reports', (req, res) => {
-    const { user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at, resolved_at } = req.body;
+app.post('/api/reports', upload.single('image'), (req, res) => {
+    const { user_id, user_name, title, type, description, lat, lon, location_name } = req.body;
+    const upvotes = null;
+    const downvotes = null;
+    const status = null;
+    const created_at = new Date();
+    const updated_at = new Date();
+    let image_url = null;
+
+    if (req.file) {
+        image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    }
 
     // Query SQL Standard
     const sql = `INSERT INTO reports 
-                 (user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at, resolved_at) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                 (user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
-    const values = [user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at, resolved_at];
+    const values = [user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at];
 
     db.query(sql, values, (err, result) => {
         if (err) {

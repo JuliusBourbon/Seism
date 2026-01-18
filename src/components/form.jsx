@@ -11,6 +11,7 @@ export default function Form({onClose, currentUser}) {
         lon: null,
         location_name: '',
     });
+    const [imageFile, setImageFile] = useState(null);
 
     const handleLocationUpdate = (newCoords) => {
         setFormData(prev => ({
@@ -33,20 +34,29 @@ export default function Form({onClose, currentUser}) {
             return;
         }
 
-        const payload = {
-            user_id: currentUser.id,
-            ...formData
+        const data = new FormData();
+        data.append('user_id', currentUser.id);
+        data.append('user_name', formData.user_name);
+        data.append('title', formData.title);
+        data.append('type', formData.type);
+        data.append('description', formData.description);
+        data.append('lat', formData.lat);
+        data.append('lon', formData.lon);
+        data.append('location_name', formData.location_name);
+        
+        if (imageFile) {
+            data.append('image', imageFile);
         }
 
-        console.log('Sending data: ', payload)
+        // Debug
+        for (let [key, value] of data.entries()) {
+            console.log(key, value); 
+        }
 
         try {
             const response = await fetch('http://localhost:3000/api/reports', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
+                body: data
             });
 
             if (response.ok) {
@@ -117,7 +127,7 @@ export default function Form({onClose, currentUser}) {
                             <label className="block font-bold mb-2">Lokasi Kejadian</label>
                             <LocationPicker onLocationChange={handleLocationUpdate} />
                         </div>
-                        <div className="flex justify-around">
+                        <div className="flex mx-50 justify-around items-center">
                             <div className="">
                                 <label className="block font-bold mb-2">Detail Lokasi</label>
                                 <input 
@@ -126,6 +136,18 @@ export default function Form({onClose, currentUser}) {
                                     className="border border-black/30 p-1 w-full mb-2 rounded-lg"
                                     onChange={(e) => setFormData({...formData, location_name: e.target.value})}
                                 />
+                            </div>
+
+                            <div className="flex flex-col w-full my-5 gap-2">
+                                <div className="mb-1 flex mx-50 flex-col">
+                                    <label className="block font-bold mb-2">Foto Kejadian</label>
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        className="block w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                        onChange={(e) => setImageFile(e.target.files[0])}
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex items-center">
