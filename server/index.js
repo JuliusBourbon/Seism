@@ -5,6 +5,7 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
 
 const app = express();
 dotenv.config();
@@ -24,12 +25,10 @@ db.connect((err) => {
 });
 
 const storage = multer.diskStorage({
-    // Lokasi folder
     destination: (req, file, cb) => {
         cb(null, path.join(__dirname, 'uploads'));
     },
     filename: (req, file, cb) => {
-        // Format file
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + path.extname(file.originalname));
     }
@@ -128,6 +127,85 @@ app.get('/api/reports', (req, res) => {
         }
         
         res.json(results);
+    });
+});
+
+app.post('/api/auth/register', async (req, res) => {
+    const { user_id, username, email, password } = req.body;
+
+    if (!user_id || !username || !email || !password) {
+        return res.status(400).json({ error: "Semua kolom wajib diisi!" });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const sql = `UPDATE users 
+                     SET username = ?, email = ?, password = ?, role = 'verified' 
+                     WHERE id = ?`;
+
+        db.query(sql, [username, email, hashedPassword, user_id], (err, result) => {
+            if (err) {
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(409).json({ error: "Username atau Email sudah terdaftar!" });
+                }
+                return res.status(500).json({ error: err.message });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "User Guest tidak ditemukan." });
+            }
+
+            res.json({ 
+                message: "Registrasi berhasil! Akun Anda telah diupgrade.", 
+                user: { id: user_id, username, email, role: 'verified' } 
+            });
+        });
+
+    } catch (error) {
+        res.status(500).json({ error: "Terjadi kesalahan server saat enkripsi password." });
+    }
+});
+
+app.post('/api/auth/login', (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ error: "Username dan Password wajib diisi!" });
+    }
+
+    const sql = "SELECT * FROM users WHERE username = ?";
+
+    db.query(sql, [username], async (err, results) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+
+        // Jika user tidak ditemukan
+        if (results.length === 0) {
+            return res.status(401).json({ error: "Username tidak ditemukan" });
+        }
+
+        const user = results[0];
+
+        if (!user.password) {
+            return res.status(401).json({ error: "Akun ini masih status Guest. Silakan Register dulu." });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ error: "Password salah!" });
+        }
+
+        res.json({
+            message: "Login berhasil",
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                user_identifier: user.user_identifier
+            }
+        });
     });
 });
 

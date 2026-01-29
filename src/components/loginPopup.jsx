@@ -1,26 +1,21 @@
 import { useState } from "react";
 
 export default function LoginPopup({ onClose, onLogin, onRegister, isLoading }) {
-    // State untuk menentukan mode: false = Login, true = Register
     const [isRegisterMode, setIsRegisterMode] = useState(false);
 
-    // State untuk menampung input user
     const [formData, setFormData] = useState({
         username: "",
         email: "",
         password: ""
     });
 
-    // Handle perubahan input
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Handle saat tombol submit ditekan
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Kirim data ke Parent (Nanti kita sambungkan ke API di sini)
         if (isRegisterMode) {
             onRegister(formData);
         } else {
@@ -30,10 +25,8 @@ export default function LoginPopup({ onClose, onLogin, onRegister, isLoading }) 
 
     return (
         <div className="fixed inset-0 z-2000 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-all">
-            {/* Container Modal */}
             <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden relative animate-fade-in-up font-sans">
                 
-                {/* Tombol Close (X) */}
                 <button 
                     onClick={onClose} 
                     className="absolute top-4 right-4 text-white-400 hover:text-stone-300 transition-colors z-10"
@@ -42,7 +35,6 @@ export default function LoginPopup({ onClose, onLogin, onRegister, isLoading }) 
                 </button>
 
                 <div className="flex flex-col h-full">
-                    {/* Header Bagian Atas */}
                     <div className="bg-[#0066ff] p-8 text-white text-center">
                         <h2 className="text-3xl font-bold mb-2">
                             Welcome
@@ -52,11 +44,9 @@ export default function LoginPopup({ onClose, onLogin, onRegister, isLoading }) 
                         </p>
                     </div>
 
-                    {/* Form Input */}
                     <div className="p-8 pt-6">
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                             
-                            {/* Username Field */}
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-1">Username</label>
                                 <input 
@@ -66,11 +56,10 @@ export default function LoginPopup({ onClose, onLogin, onRegister, isLoading }) 
                                     placeholder="e.g. johndoe"
                                     value={formData.username}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                    className="w-full px-4 py-3 rounded-xl border text-black border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
                                 />
                             </div>
 
-                            {/* Email Field (Hanya muncul saat Register) */}
                             {isRegisterMode && (
                                 <div className="animate-fade-in">
                                     <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
@@ -81,12 +70,11 @@ export default function LoginPopup({ onClose, onLogin, onRegister, isLoading }) 
                                         placeholder="john@example.com"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                        className="w-full px-4 py-3 text-black rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
                                     />
                                 </div>
                             )}
 
-                            {/* Password Field */}
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
                                 <input 
@@ -96,11 +84,10 @@ export default function LoginPopup({ onClose, onLogin, onRegister, isLoading }) 
                                     placeholder="••••••••"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                                    className="w-full px-4 py-3 rounded-xl text-black border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
                                 />
                             </div>
 
-                            {/* Tombol Submit Utama */}
                             <button 
                                 type="submit" 
                                 disabled={isLoading}
@@ -110,13 +97,12 @@ export default function LoginPopup({ onClose, onLogin, onRegister, isLoading }) 
                             </button>
                         </form>
 
-                        {/* Footer Toggle (Pindah Login <-> Register) */}
                         <div className="mt-6 text-center text-sm text-gray-600">
                             {isRegisterMode ? "Already have an account? " : "New here? "}
                             <button 
                                 onClick={() => {
                                     setIsRegisterMode(!isRegisterMode);
-                                    setFormData({ username: '', email: '', password: '' }); // Reset form saat switch
+                                    setFormData({ username: '', email: '', password: '' });
                                 }}
                                 className="font-bold text-[#008CFF] hover:underline"
                             >

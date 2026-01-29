@@ -36,7 +36,7 @@ export default function App(){
     <div>
       <main>
         <Routes>
-          <Route path='/' element={<LandingPage/>}/>
+          <Route path='/' element={<LandingPage currentUser={currentUser} setCurrentUser={setCurrentUser} />} />
           <Route path='/Map' element={<Map currentUser={currentUser}/>}/>
         </Routes>
       </main>

@@ -1,17 +1,69 @@
 import logo from '../assets/logo.png';
 import { useState } from 'react';
 import LoginPopup from './loginPopup';
+import { useNavigate } from 'react-router-dom';
 
-export default function LandingPage() {
+export default function LandingPage({ currentUser, setCurrentUser }) {
+    const navigate = useNavigate();
     const [showAuth, setShowAuth] = useState(false);
-    const handleLogin = (data) => {
-        console.log("Login Data:", data);
-        alert("Login logic akan dipasang nanti!");
+    const handleLogin = async (formData) => {
+        try {
+            const response = await fetch('http://localhost:3000/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: formData.username,
+                    password: formData.password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(`Selamat datang kembali, ${data.user.username}!`);
+                setCurrentUser(data.user);
+                setShowAuth(false); 
+                navigate('/map')
+            } else {
+                alert(data.error || "Login Gagal");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Gagal menghubungi server");
+        }
     };
 
-    const handleRegister = (data) => {
-        console.log("Register Data:", data);
-        alert("Register logic akan dipasang nanti!");
+    const handleRegister = async (formData) => {
+        if (!currentUser) {
+            alert("Sedang memuat data Guest... Coba sesaat lagi.");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3000/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: currentUser.id,
+                    username: formData.username,
+                    email: formData.email,
+                    password: formData.password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Registrasi Berhasil! Selamat datang Member baru.");
+                setCurrentUser(prev => ({ ...prev, ...data.user })); 
+                setShowAuth(false); 
+            } else {
+                alert(data.error || "Registrasi Gagal");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Gagal menghubungi server");
+        }
     };
 
     const scrollToSection = (id) => {
