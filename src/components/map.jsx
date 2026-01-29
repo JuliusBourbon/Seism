@@ -26,7 +26,7 @@ const FlyToLocation = ({ coords }) => {
     return null;
 };
 
-export default function Map({ currentUser }){
+export default function Map({ currentUser, onLoginSuccess, onLogout }){
     const [isCheck, setIsCheck] = useState({
         gempa: true,
         cuaca: true,
@@ -174,7 +174,7 @@ export default function Map({ currentUser }){
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
                 <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'profile' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'profile' && (
-                        <Profile onClose={handleCloseTab}/>
+                        <Profile onClose={handleCloseTab} currentUser={currentUser} onAuthSuccess={onLoginSuccess} onLogout={onLogout}/>
                     )}
                 </div>
             </div>

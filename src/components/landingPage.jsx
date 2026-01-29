@@ -3,9 +3,12 @@ import { useState } from 'react';
 import LoginPopup from './loginPopup';
 import { useNavigate } from 'react-router-dom';
 
-export default function LandingPage({ currentUser, setCurrentUser }) {
+export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
+    const isVerifiedUser = currentUser?.role === 'verified';
     const navigate = useNavigate();
     const [showAuth, setShowAuth] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+
     const handleLogin = async (formData) => {
         try {
             const response = await fetch('http://localhost:3000/api/auth/login', {
@@ -66,6 +69,11 @@ export default function LandingPage({ currentUser, setCurrentUser }) {
         }
     };
 
+    const handleLogoutClick = () => {
+        onLogout(); 
+        setShowUserMenu(false); 
+    };
+
     const scrollToSection = (id) => {
         const element = document.getElementById(id);
         if (element) {
@@ -106,10 +114,41 @@ export default function LandingPage({ currentUser, setCurrentUser }) {
                             <button onClick={() => scrollToSection('credit')} className="hover:text-white transition-colors cursor-pointer">Credit</button>
                         </div>
                     </div>
-                    <div>
-                        <button onClick={() => setShowAuth(true)} className="px-6 py-2 bg-white text-[#00165D] font-semibold rounded-full hover:bg-gray-100 transition-all shadow-md">
-                            Login
-                        </button>
+                    <div className="relative">
+                        {isVerifiedUser ? (
+                            // --- JIKA SUDAH VERIFIED MEMBER: Tampilkan Dropdown ---
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setShowUserMenu(!showUserMenu)}
+                                    className="flex items-center gap-3 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/20"
+                                >
+                                    {/* Avatar & Username */}
+                                    <div className="w-8 h-8 bg-[#008CFF] rounded-full flex items-center justify-center font-bold text-sm">
+                                        {currentUser.username?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span className="font-semibold text-sm max-w-[100px] truncate">
+                                        {currentUser.username}
+                                    </span>
+                                    <span className="text-xs">▼</span>
+                                </button>
+                                
+                                {/* ... Dropdown menu content (sama seperti sebelumnya) ... */}
+                                {showUserMenu && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl py-2 text-gray-800 animate-fade-in z-50">
+                                        {/* ... tombol map & logout ... */}
+                                        <button onClick={handleLogoutClick} className="...">Logout</button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            // --- JIKA GUEST / BELUM ADA DATA: Tampilkan Tombol Login ---
+                            <button 
+                                onClick={() => setShowAuth(true)} 
+                                className="px-6 py-2 bg-white text-[#00165D] font-semibold rounded-full hover:bg-gray-100 transition-all shadow-md"
+                            >
+                                Login
+                            </button>
+                        )}
                     </div>
                 </div>
             </nav>
