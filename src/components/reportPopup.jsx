@@ -5,8 +5,7 @@ export default function ReportPopup({ report }) {
         <div className="w-[280px] font-sans">
             <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-400" title={report.user_identifier}>
-                    User: {report.user_identifier ? report.user_identifier.substring(0, 15) + '...' : 'Anon'}<br />
-                    Username: {report.user_name}
+                    {report.user_name}
                 </span>
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide 
                     ${report.type === 'Banjir' ? 'bg-blue-100 text-blue-600' : 
