@@ -1,7 +1,19 @@
 import logo from '../assets/logo.png';
 import { useState } from 'react';
+import LoginPopup from './loginPopup';
 
 export default function LandingPage() {
+    const [showAuth, setShowAuth] = useState(false);
+    const handleLogin = (data) => {
+        console.log("Login Data:", data);
+        alert("Login logic akan dipasang nanti!");
+    };
+
+    const handleRegister = (data) => {
+        console.log("Register Data:", data);
+        alert("Register logic akan dipasang nanti!");
+    };
+
     const scrollToSection = (id) => {
         const element = document.getElementById(id);
         if (element) {
@@ -22,6 +34,9 @@ export default function LandingPage() {
 
     return (
         <div className="font-sans text-white">
+            {showAuth && (
+                <LoginPopup onClose={() => setShowAuth(false)} onLogin={handleLogin} onRegister={handleRegister}/>
+            )}
             <nav className="fixed w-full z-50 backdrop-blur-md border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
                     <div className="flex items-center gap-12">
@@ -40,7 +55,7 @@ export default function LandingPage() {
                         </div>
                     </div>
                     <div>
-                        <button className="px-6 py-2 bg-white text-[#00165D] font-semibold rounded-full hover:bg-gray-100 transition-all shadow-md cursor-pointer">
+                        <button onClick={() => setShowAuth(true)} className="px-6 py-2 bg-white text-[#00165D] font-semibold rounded-full hover:bg-gray-100 transition-all shadow-md">
                             Login
                         </button>
                     </div>
