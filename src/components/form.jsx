@@ -1,7 +1,7 @@
 import { useState } from "react"
 import LocationPicker from "./locationPicker";
 
-export default function Form({onClose, currentUser}) {
+export default function Form({onClose, currentUser, onSuccess}) {
     const [formData, setFormData] = useState({
         user_name: '',
         title: '',
@@ -60,9 +60,14 @@ export default function Form({onClose, currentUser}) {
             });
 
             if (response.ok) {
-                alert("Report Sent!");
+                const result = await response.json();
+                
+                if (onSuccess) {
+                    onSuccess(result.data); 
+                }
+                
             } else {
-                alert("Failed to sending report!");
+                alert("Gagal mengirim laporan!");
             }
 
         } catch (error) {

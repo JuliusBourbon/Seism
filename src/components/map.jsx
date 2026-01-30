@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import Navbar from "./navbar";
 import bmkg from "../API/bmkg.js"
@@ -73,7 +73,44 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
     const { allCuaca, loadingCuaca } = Cuaca();
     const [selectedPosition, setSelectedPosition] = useState(null);
    
-    const { reports, loading: loadingReports } = Reports();
+    const [reports, setReports] = useState([]);
+    // const { reports, loading: loadingReports } = Reports();
+
+    const mapRef = useRef(null);
+
+    const handleReportSuccess = (newReport) => {
+        setReports(prevReports => [newReport, ...prevReports]);
+        setActiveTab(null);
+
+        if (mapRef.current) {
+            const map = mapRef.current;
+            map.flyTo([newReport.lat, newReport.lon], 16, {
+                duration: 2
+            });
+        }
+        
+        alert("Laporan berhasil diterbitkan!");
+    };
+
+    useEffect(() => {
+        const fetchReports = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/reports'); 
+                
+                if (!response.ok) {
+                    throw new Error("Gagal mengambil data");
+                }
+                const data = await response.json();
+                console.log("Data Laporan dari DB:", data); 
+                setReports(data); 
+
+            } catch (error) {
+                console.error("Error fetching reports:", error);
+            }
+        };
+
+        fetchReports();
+    }, []);
 
     if (loading) 
         return <p>Loading...</p>;
@@ -91,7 +128,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
             <div className="absolute w-full h-full left-0 z-999 pointer-events-none">
                 <LegendsBar markers={markerData} isCheck={isCheck} toggleMarker={toggleMarker}/>
             </div>
-            <MapContainer selectedPosition={selectedPosition} center={centerPosition} zoom={6} zoomControl={false} scrollWheelZoom={true} className="h-full w-full z-0">
+            <MapContainer ref={mapRef} selectedPosition={selectedPosition} center={centerPosition} zoom={6} zoomControl={false} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
 
@@ -167,7 +204,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
                 <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'form' && (
-                        <Form currentUser={currentUser} onClose={handleCloseTab}/>
+                        <Form currentUser={currentUser} onClose={null} onSuccess={handleReportSuccess}/>
                     )}
                 </div>
             </div>

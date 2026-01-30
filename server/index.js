@@ -66,7 +66,17 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
             console.error(err);
             return res.status(500).send("Failed to create Report");
         }
-        res.send("Report succesfully created");
+        const newReport = {
+            id: result.insertId,
+            user_id, user_name, title, type, description, 
+            lat, lon, location_name, image_url,
+            upvotes, downvotes, status, created_at, updated_at
+        };
+
+        res.status(201).json({
+            message: "Report successfully created",
+            data: newReport
+        });
     });
 });
 
