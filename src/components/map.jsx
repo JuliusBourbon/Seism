@@ -184,7 +184,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                         position={[item.lat, item.lon]}
                         icon={redMarker}>
                         <Popup className="request-popup">
-                            <ReportPopup report={item}/>
+                            <ReportPopup report={item} currentUser={currentUser}/>
                         </Popup>
                     </Marker>
                 ))}

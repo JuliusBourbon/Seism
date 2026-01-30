@@ -40,7 +40,6 @@ const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
-// Endpoint Post Report
 app.post('/api/reports', upload.single('image'), (req, res) => {
     const { user_id, user_name, title, type, description, lat, lon, location_name } = req.body;
     const upvotes = null;
@@ -76,6 +75,77 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
         res.status(201).json({
             message: "Report successfully created",
             data: newReport
+        });
+    });
+});
+
+app.get('/api/reports/:id/vote-status', (req, res) => {
+    const reportId = req.params.id;
+    const userId = req.query.user_id;
+
+    if (!userId) return res.json({ voted: null });
+
+    const sql = "SELECT vote_type FROM votes_detail WHERE report_id = ? AND user_id = ?";
+    db.query(sql, [reportId, userId], (err, results) => {
+        if (err) return res.status(500).json({ error: "DB Error" });
+        
+        if (results.length > 0) {
+            res.json({ voted: results[0].vote_type });
+        } else {
+            res.json({ voted: null });
+        }
+    });
+});
+
+app.post('/api/reports/:id/vote', (req, res) => {
+    const reportId = req.params.id;
+    const { user_id, type } = req.body;
+
+    if (!user_id) return res.status(401).json({ error: "User wajib login" });
+
+    const checkSql = "SELECT * FROM votes_detail WHERE report_id = ? AND user_id = ?";
+    
+    db.query(checkSql, [reportId, user_id], (err, results) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+
+        let actionQuery = "";
+        let actionParams = [];
+
+        if (results.length === 0) {
+            actionQuery = "INSERT INTO votes_detail (report_id, user_id, vote_type) VALUES (?, ?, ?)";
+            actionParams = [reportId, user_id, type];
+        } else {
+            const currentVote = results[0].vote_type;
+            if (currentVote === type) {
+                actionQuery = "DELETE FROM votes_detail WHERE report_id = ? AND user_id = ?";
+                actionParams = [reportId, user_id];
+            } else {
+                actionQuery = "UPDATE votes_detail SET vote_type = ? WHERE report_id = ? AND user_id = ?";
+                actionParams = [type, reportId, user_id];
+            }
+        }
+
+        db.query(actionQuery, actionParams, (err, result) => {
+            if (err) return res.status(500).json({ error: "Failed to update vote" });
+
+            const countSql = `
+                UPDATE reports r
+                SET 
+                    upvotes = (SELECT COUNT(*) FROM votes_detail WHERE report_id = r.id AND vote_type = 'up'),
+                    downvotes = (SELECT COUNT(*) FROM votes_detail WHERE report_id = r.id AND vote_type = 'down')
+                WHERE r.id = ?
+            `;
+
+            db.query(countSql, [reportId], (err, result) => {
+                if (err) return res.status(500).json({ error: "Failed to sync counts" });
+
+                db.query("SELECT upvotes, downvotes FROM reports WHERE id = ?", [reportId], (err, newCounts) => {
+                    res.json({ 
+                        message: "Vote updated", 
+                        new_counts: newCounts[0]
+                    });
+                });
+            });
         });
     });
 });
@@ -120,7 +190,6 @@ app.post('/api/auth/guest', (req, res) => {
     })
 })
 
-// Endpoint Get
 app.get('/api/reports', (req, res) => {
     const sql = `SELECT 
             reports.*, 
