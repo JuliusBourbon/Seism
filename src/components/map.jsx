@@ -91,7 +91,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
             <div className="absolute w-full h-full left-0 z-999 pointer-events-none">
                 <LegendsBar markers={markerData} isCheck={isCheck} toggleMarker={toggleMarker}/>
             </div>
-            <MapContainer selectedPosition={selectedPosition} center={centerPosition} zoom={6} scrollWheelZoom={true} className="h-full w-full z-0">
+            <MapContainer selectedPosition={selectedPosition} center={centerPosition} zoom={6} zoomControl={false} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
 
