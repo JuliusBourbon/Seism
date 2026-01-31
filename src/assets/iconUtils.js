@@ -1,8 +1,5 @@
-// components/IconUtils.js
 import L from 'leaflet';
 
-// 1. KITA DEFINISIKAN DATA MENTAHNYA DULU (Config)
-// Ini agar bisa dipakai di React Component & Leaflet
 export const CATEGORY_STYLES = {
     'Banjir': {
         color: 'border-blue-500 text-blue-600',
@@ -30,9 +27,7 @@ export const CATEGORY_STYLES = {
     }
 };
 
-// 2. HELPER UNTUK MENGHASILKAN HTML STRING (Dipakai oleh Leaflet & React)
 export const getIconHtml = (type) => {
-    // Normalisasi input (misal 'banjir' jadi 'Banjir') agar aman
     const key = Object.keys(CATEGORY_STYLES).find(k => k.toLowerCase() === type.toLowerCase()) || 'Default';
     const style = CATEGORY_STYLES[key];
 
@@ -41,16 +36,15 @@ export const getIconHtml = (type) => {
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 ${style.path}
             </svg>
-            <div class="absolute -bottom-1 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white"></div>
+            <div class="absolute -bottom-1 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-8 border-t-white"></div>
         </div>
     `;
 };
 
-// 3. FUNGSI UNTUK LEAFLET (Return L.divIcon)
 export const getCategoryIcon = (type) => {
     return L.divIcon({
         className: 'custom-leaflet-icon',
-        html: getIconHtml(type), // <--- Kita panggil helper di atas
+        html: getIconHtml(type), 
         iconSize: [40, 40],
         iconAnchor: [20, 40],
         popupAnchor: [0, -40]
