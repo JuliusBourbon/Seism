@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import LocationPicker from "./locationPicker";
+import { getDeviceId } from "../Data/deviceId";
 
 export default function Form({onClose, currentUser, onSuccess}) {
     const [userLocation, setUserLocation] = useState({ lat: null, lon: null });
@@ -54,22 +55,22 @@ export default function Form({onClose, currentUser, onSuccess}) {
         e.preventDefault();
 
         if (!userLocation.lat || !userLocation.lon) {
-            alert("Sedang mendeteksi lokasi Anda... Mohon tunggu atau izinkan akses GPS.");
+            alert("Sedang mendeteksi lokasi Anda... Mohon tunggu.");
             return;
         }
 
         if (!currentUser) {
-            alert("Loading User data, please wait..");
-            return;
-        }
-
-        if (!formData.lat || !formData.lon) {
-            alert("Mohon pilih lokasi kejadian di peta!");
+            alert("Loading User data...");
             return;
         }
 
         const data = new FormData();
-        data.append('user_id', currentUser.id);
+        if (currentUser?.id) {
+            data.append('user_id', currentUser.id);
+        }
+    
+        const deviceId = currentUser?.user_identifier || getDeviceId(); 
+        data.append('user_identifier', deviceId);
         data.append('user_name', formData.user_name);
         data.append('title', formData.title);
         data.append('type', formData.type);
@@ -84,30 +85,24 @@ export default function Form({onClose, currentUser, onSuccess}) {
             data.append('image', imageFile);
         }
 
-        // Debug
-        for (let [key, value] of data.entries()) {
-            console.log(key, value); 
-        }
-
         try {
             const response = await fetch('http://localhost:3000/api/reports', {
                 method: 'POST',
                 body: data
             });
 
+            const result = await response.json(); 
+
             if (response.ok) {
-                const result = await response.json();
-                
-                if (onSuccess) {
-                    onSuccess(result.data); 
-                }
-                
+                if (onSuccess) onSuccess(result.data); 
+                onClose(); 
             } else {
-                alert("Gagal mengirim laporan! Kamu tidak dapat mengirim laporan untuk lokasi yang jauh!");
+                alert(result.error || "Gagal mengirim laporan.");
             }
 
         } catch (error) {
-            console.error("Connection Error:", error);
+            console.error(error);
+            alert("Terjadi kesalahan koneksi.");
         }
     };
     return(

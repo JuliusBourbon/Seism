@@ -52,60 +52,116 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 app.post('/api/reports', upload.single('image'), (req, res) => {
-    const { user_id, user_name, title, type, description, lat, lon, location_name, user_device_lat, user_device_lon} = req.body;
-    const upvotes = null;
-    const downvotes = null;
-    const status = null;
-    const created_at = new Date();
-    const updated_at = new Date();
-    let image_url = null;
+    const { 
+        user_id, user_name, title, type, description, 
+        lat, lon, location_name, user_device_lat, user_device_lon,
+        user_identifier 
+    } = req.body;
 
     if (!lat || !lon || !user_device_lat || !user_device_lon) {
-        return res.status(400).json({ error: "Data lokasi tidak lengkap. Pastikan GPS aktif." });
+        return res.status(400).json({ error: "Data lokasi tidak lengkap." });
     }
-
     const distance = calculateDistance(
-        parseFloat(user_device_lat), parseFloat(user_device_lon), 
+        parseFloat(user_device_lat), parseFloat(user_device_lon),
         parseFloat(lat), parseFloat(lon)
     );
-    console.log(`Jarak user ke titik laporan: ${distance.toFixed(2)} KM`);
-    
     if (distance > 5.0) {
-        return res.status(403).json({ 
-            error: `Lokasi Anda terlalu jauh (${distance.toFixed(1)} km). Anda hanya bisa melapor dalam radius 5 km.` 
-        });
-    }
-    
-    if (req.file) {
-        image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        return res.status(403).json({ error: `Lokasi terlalu jauh (${distance.toFixed(1)} km). Maksimal 5 km.` });
     }
 
-    // Query
-    const sql = `INSERT INTO reports 
-                 (user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    
-    const values = [user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at];
+    const processRateLimit = (limitMinutes, isVerifiedUser) => {
+        let checkSql = "";
+        let checkParams = [];
+        
+        const finalIdentifier = user_identifier || `guest-${Date.now()}`;
 
-    db.query(sql, values, (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send("Failed to create Report");
+        if (isVerifiedUser) {
+            checkSql = "SELECT created_at FROM reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 1";
+            checkParams = [user_id];
+        } else {
+            checkSql = "SELECT created_at FROM reports WHERE user_identifier = ? ORDER BY created_at DESC LIMIT 1";
+            checkParams = [finalIdentifier];
         }
-        const newReport = {
-            id: result.insertId,
-            user_id, user_name, title, type, description, 
-            lat, lon, location_name, image_url,
-            upvotes, downvotes, status, created_at, updated_at
-        };
 
-        res.status(201).json({
-            message: "Report successfully created",
-            data: newReport
+        db.query(checkSql, checkParams, (err, results) => {
+            if (err) {
+                console.error("History Check Error:", err);
+                return res.status(500).json({ error: "Gagal mengecek history" });
+            }
+
+            if (results.length > 0) {
+                const lastReportTime = new Date(results[0].created_at);
+                const now = new Date();
+                const diffMs = now - lastReportTime;
+                const diffMinutes = Math.floor(diffMs / 60000);
+
+                if (diffMinutes < limitMinutes) {
+                    const sisaWaktu = limitMinutes - diffMinutes;
+                    return res.status(429).json({ 
+                        error: `Terlalu cepat! Sebagai ${isVerifiedUser ? 'Verified User' : 'Guest'}, kamu harus menunggu ${sisaWaktu} menit lagi.` 
+                    });
+                }
+            }
+
+            let finalImageUrl = null;
+            if (req.file) {
+                finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+            }
+
+            const insertSql = `
+                INSERT INTO reports (user_id, user_identifier, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'pending', NOW(), NOW())
+            `;
+            
+            const values = [
+                isVerifiedUser ? user_id : null, 
+                finalIdentifier,
+                user_name,
+                title,
+                type,
+                description,
+                lat,
+                lon,
+                location_name,
+                finalImageUrl
+            ];
+
+            db.query(insertSql, values, (err, result) => {
+                if (err) {
+                    console.error("Insert Error:", err);
+                    return res.status(500).json({ error: "Gagal menyimpan laporan." });
+                }
+
+                res.status(201).json({
+                    message: "Laporan berhasil dikirim!",
+                    data: {
+                        id: result.insertId,
+                        status: 'pending',
+                        type: type
+                    }
+                });
+            });
         });
-    });
-});
+    };
 
+    if (user_id && user_id !== 'null' && user_id !== 'undefined') {
+        const userSql = "SELECT role FROM users WHERE id = ?";
+        db.query(userSql, [user_id], (err, userResults) => {
+            if (err) {
+                console.error("User Check Error:", err);
+                return processRateLimit(20, false); 
+            }
+
+            if (userResults.length > 0 && userResults[0].role === 'verified') {
+                processRateLimit(2, true);
+            } else {
+                processRateLimit(20, false);
+            }
+        });
+    } else {
+        processRateLimit(20, false);
+    }
+});
 app.get('/api/reports/:id/vote-status', (req, res) => {
     const reportId = req.params.id;
     const userId = req.query.user_id;
