@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import LocationPicker from "./locationPicker";
 
 export default function Form({onClose, currentUser, onSuccess}) {
@@ -12,6 +12,15 @@ export default function Form({onClose, currentUser, onSuccess}) {
         location_name: '',
     });
     const [imageFile, setImageFile] = useState(null);
+
+    useEffect(() => {
+        if (currentUser?.role == 'verified') {
+            setFormData(prev => ({
+                ...prev,
+                user_name: currentUser.username
+            }));
+        }
+    }, [currentUser]);
 
     const handleLocationUpdate = (newCoords) => {
         setFormData(prev => ({
@@ -89,11 +98,22 @@ export default function Form({onClose, currentUser, onSuccess}) {
                     <div className="flex flex-col w-full my-5 gap-2">
                         <div className="flex gap-3 items-center justify-around mx-50">
                             <div className="mb-1">
-                                <label className="block font-bold mb-2">Username (Boleh Anonym)</label>
+                                <label className="block font-bold mb-2">
+                                    {currentUser?.role == 'verified' ? "Username (Terdaftar)" : "Username (Boleh Anonym)"}
+                                </label>
                                 <input 
                                     type="text" 
                                     placeholder="Username"
-                                    className="p-1 w-full mb-2 rounded-lg border border-black/30"
+                                    value={formData.user_name}
+                                    
+                                    readOnly={currentUser?.role == 'verified'}
+                                    
+                                    className={`p-1 w-full mb-2 rounded-lg border border-black/30 transition-colors
+                                        ${currentUser?.role == 'verified' 
+                                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed font-semibold' // Style terkunci
+                                            : 'bg-white'
+                                        }`}
+                                    
                                     onChange={(e) => setFormData({...formData, user_name: e.target.value})}
                                 />
                             </div>
