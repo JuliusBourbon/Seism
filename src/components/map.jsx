@@ -55,8 +55,8 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
             label: 'Akses Tertutup', 
         }, 
         { 
-            id: 'default', 
-            label: 'Default', 
+            id: 'lainnya', 
+            label: 'Lainnya', 
         }, 
     ];
 
