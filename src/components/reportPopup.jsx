@@ -66,18 +66,45 @@ export default function ReportPopup({ report, currentUser }) {
     return(
 
         <div className="w-[280px] font-sans">
+            
             <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-gray-400" title={report.user_identifier}>
-                    {report.user_name}
-                </span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide 
-                    ${report.type === 'Banjir' ? 'bg-blue-100 text-blue-600' : 
-                    report.type === 'Kebakaran' ? 'bg-red-100 text-red-600' :
-                    report.type === 'Gempa' ? 'bg-orange-100 text-orange-600' :
-                    'bg-gray-100 text-gray-600'}`}>
-                    {report.type}
-                </span>
+                <div className="flex flex-col">
+                    <span className="text-base font-medium">
+                        {report.user_name} 
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide  
+                        ${report.reporter_role == 'verified' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                        {report.reporter_role}
+                    </span>
+                </div>
+                <div className="flex gap-2 items-center">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-500">Laporan</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide 
+                        ${report.type === 'Banjir' ? 'bg-blue-100 text-blue-600' : 
+                        report.type === 'Kebakaran' ? 'bg-red-100 text-red-600' :
+                        report.type === 'Gempa' ? 'bg-purple-100 text-purple-600' :
+                        report.type === 'Longsor' ? 'bg-red-100 text-orange-600' :
+                        report.type === 'Akses Tertutup' ? 'bg-yellow-100 text-yellow-600' :
+                        'bg-gray-100 text-gray-600'}`}>
+                        {report.type}
+                    </span>
+                </div>
             </div>
+
+            <div className="flex justify-center pt-1">
+                <h2 className="font-bold text-lg leading-tight text-gray-800 mb-1">
+                    {report.title}
+                </h2>
+            </div>
+
+            <div className="py-2 mb-2">
+                <h1 className="text-sm text-gray-800 italic line-clamp-3 leading-snug">
+                    "{report.description}"
+                </h1>
+            </div>
+
+            
+
 
             {report.image_url && (
                 <div className="mb-3 rounded-lg overflow-hidden h-32 w-full bg-gray-100">
@@ -89,27 +116,16 @@ export default function ReportPopup({ report, currentUser }) {
                 </div>
             )}
 
-            <div className="mb-3">
-                <h2 className="font-bold text-lg leading-tight text-gray-800 mb-1">
-                    {report.title}
-                </h2>
-                <p className="text-sm text-gray-600 line-clamp-3 leading-snug">
-                    "{report.description}"
-                </p>
-            </div>
-
             <div className="flex items-start gap-1 mb-3 text-xs text-gray-500">
                 <svg className="w-3 h-3 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                <span className="font-medium">{report.location_name || "Lokasi tidak terdeteksi"} | {report.lat} {report.lon}</span>
+                <span className="font-medium">{report.location_name || "Lokasi tidak terdeteksi"}<br/> {report.lat} {report.lon}</span>
             </div>
 
-            <div className="flex items-center justify-between border-t border-gray-100 pt-2 mt-1">
-                
-                {/* Tombol UP */}
+            <div className="flex gap-1 items-center justify-between border-t border-gray-300 pt-2 mt-1">
                 <button 
                     onClick={() => handleVote('up')} 
                     disabled={isLoading}
-                    className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all group
+                    className={`flex items-center gap-1.5 w-full py-1 rounded-md transition-all group
                         ${userVote === 'up' 
                             ? 'bg-green-100 text-green-700 font-bold ring-1 ring-green-400'
                             : 'hover:bg-green-50 text-gray-600 hover:text-green-600'}` 
@@ -127,7 +143,7 @@ export default function ReportPopup({ report, currentUser }) {
                 <button 
                     onClick={() => handleVote('down')}
                     disabled={isLoading}
-                    className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all group
+                    className={`flex items-center justify-end gap-1.5 w-full py-1 rounded-md transition-all group
                         ${userVote === 'down' 
                             ? 'bg-red-100 text-red-700 font-bold ring-1 ring-red-400' 
                             : 'hover:bg-red-50 text-gray-600 hover:text-red-600'}`

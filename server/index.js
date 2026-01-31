@@ -191,13 +191,10 @@ app.post('/api/auth/guest', (req, res) => {
 })
 
 app.get('/api/reports', (req, res) => {
-    const sql = `SELECT 
-            reports.*, 
-            users.username AS reporter_name,
-            users.user_identifier
-            FROM reports 
-            JOIN users ON reports.user_id = users.id
-            ORDER BY reports.created_at DESC`;
+    const sql = `SELECT r.*, u.role AS reporter_role 
+            FROM reports r
+            LEFT JOIN users u ON r.user_id = u.id
+            ORDER BY r.created_at DESC`;
 
     db.query(sql, (err, results) => {
         if (err) {

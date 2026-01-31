@@ -141,8 +141,9 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                     return (
                         <Marker key={idx} position={coordinatesArray} icon={getCategoryIcon('Gempa')}>
                             <Popup>
-                                <div className="text-center flex flex-col gap-3">
-                                    <h1 className="font-bold text-lg">{gempa.Wilayah}</h1>
+                                <div className="justify-center items-center flex flex-col gap-3">
+                                    <h1 className="font-bold text-lg text-center">{gempa.Wilayah}</h1>
+                                    <h1 className="bg-blue-200 w-fit px-3 py-1 rounded-md text-blue-600 font-bold">Sumber: BMKG</h1>
                                     <h1 className="text-sm">{gempa.Tanggal} {gempa.Jam}</h1>
                                     <h1 className="text-sm">Kedalaman: {gempa.Kedalaman} | Mag: <span className="text-red-600 font-bold">{gempa.Magnitude}</span></h1>
                                 </div>
