@@ -27,11 +27,6 @@ const FlyToLocation = ({ coords }) => {
 };
 
 export default function Map({ currentUser, onLoginSuccess, onLogout }){
-    const [isCheck, setIsCheck] = useState({
-        gempa: true,
-        cuaca: true,
-        reports: true
-    });
     const [activeTab, setActiveTab] = useState('home')
     const handleCloseTab = () => {
         setActiveTab('home');
@@ -65,19 +60,26 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
         }, 
     ];
 
-    const toggleMarker = (markerId) => {
-        setIsCheck(prev => ({
+    const [filterState, setFilterState] = useState({
+        banjir: true,
+        kebakaran: true,
+        gempa: true,
+        longsor: true,
+        kecelakaan: true,
+        lainnya: true
+    });
+
+    const handleToggleFilter = (id) => {
+        setFilterState(prev => ({
             ...prev,
-            [markerId]: !prev[markerId]
+            [id]: !prev[id]
         }));
     };
-    
+
     const centerPosition = [-2.5489, 118.0149]; 
     const { data: dataGempa, loading, error } = bmkg();
     const [selectedPosition, setSelectedPosition] = useState(null);
-   
     const [reports, setReports] = useState([]);
-
     const mapRef = useRef(null);
 
     const handleReportSuccess = (newReport) => {
@@ -128,13 +130,13 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                 <Sidebar dataGempa={dataGempa} dataReports={reports} onLocationSelect={setSelectedPosition}/>
             </div>
             <div className="absolute w-full h-full left-0 z-999 pointer-events-none">
-                <LegendsBar markers={markerData} isCheck={isCheck} toggleMarker={toggleMarker}/>
+                <LegendsBar markers={markerData} isCheck={filterState} toggleMarker={handleToggleFilter}/>
             </div>
             <MapContainer ref={mapRef} selectedPosition={selectedPosition} center={centerPosition} zoom={6} zoomControl={false} scrollWheelZoom={true} className="h-full w-full z-0">
                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
                 <FlyToLocation coords={selectedPosition} />
 
-                {isCheck.gempa && dataGempa.map((gempa, idx) => {
+                {dataGempa.filter(() => filterState['gempa'] === true).map((gempa, idx) => {
                     const coordinatesArray = gempa.Coordinates.split(',').map(parseFloat);
                     return (
                         <Marker key={idx} position={coordinatesArray} icon={getCategoryIcon('Gempa')}>
@@ -148,19 +150,24 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                         </Marker>
                     );
                 })}
-                {isCheck.reports && reports && reports.map((item) => (
-                    <Marker 
-                        key={item.id} 
-                        position={[item.lat, item.lon]}
-                        icon={getCategoryIcon(item.type)} 
-                    >
-                        <Popup className="request-popup">
-                            <ReportPopup 
-                                report={item} 
-                                currentUser={currentUser}
-                            />
-                        </Popup>
-                    </Marker>
+                {reports
+                    .filter((item) => {
+                        // Ambil tipe laporan (misal: "Banjir") -> jadikan "banjir"
+                        const typeKey = item.type ? item.type.toLowerCase() : 'lainnya';
+                        
+                        // Cek apakah di filterState nilainya true?
+                        return filterState[typeKey] === true;
+                    })
+                    .map((item) => (
+                        <Marker 
+                            key={`report-${item.id}`} 
+                            position={[item.lat, item.lon]}
+                            icon={getCategoryIcon(item.type)}
+                        >
+                            <Popup className="request-popup">
+                                <ReportPopup report={item} currentUser={currentUser} />
+                            </Popup>
+                        </Marker>
                 ))}
             </MapContainer>
             <div className="absolute bottom-0 left-0 z-1000 pointer-events-none">
