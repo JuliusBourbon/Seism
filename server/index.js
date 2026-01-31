@@ -19,6 +19,17 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME
 });
 
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; 
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; 
+}
+
 db.connect((err) => {
     if (err) throw err;
     console.log('Connected to database');
@@ -41,7 +52,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 app.post('/api/reports', upload.single('image'), (req, res) => {
-    const { user_id, user_name, title, type, description, lat, lon, location_name } = req.body;
+    const { user_id, user_name, title, type, description, lat, lon, location_name, user_device_lat, user_device_lon} = req.body;
     const upvotes = null;
     const downvotes = null;
     const status = null;
@@ -49,6 +60,22 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
     const updated_at = new Date();
     let image_url = null;
 
+    if (!lat || !lon || !user_device_lat || !user_device_lon) {
+        return res.status(400).json({ error: "Data lokasi tidak lengkap. Pastikan GPS aktif." });
+    }
+
+    const distance = calculateDistance(
+        parseFloat(user_device_lat), parseFloat(user_device_lon), 
+        parseFloat(lat), parseFloat(lon)
+    );
+    console.log(`Jarak user ke titik laporan: ${distance.toFixed(2)} KM`);
+    
+    if (distance > 5.0) {
+        return res.status(403).json({ 
+            error: `Lokasi Anda terlalu jauh (${distance.toFixed(1)} km). Anda hanya bisa melapor dalam radius 5 km.` 
+        });
+    }
+    
     if (req.file) {
         image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     }

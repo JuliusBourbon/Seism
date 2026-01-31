@@ -2,6 +2,8 @@ import { useState, useEffect } from "react"
 import LocationPicker from "./locationPicker";
 
 export default function Form({onClose, currentUser, onSuccess}) {
+    const [userLocation, setUserLocation] = useState({ lat: null, lon: null });
+    const [gpsError, setGpsError] = useState(null);
     const [formData, setFormData] = useState({
         user_name: '',
         title: '',
@@ -14,6 +16,24 @@ export default function Form({onClose, currentUser, onSuccess}) {
     const [imageFile, setImageFile] = useState(null);
 
     useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    });
+                    console.log("Lokasi User Terdeteksi:", position.coords);
+                },
+                (error) => {
+                    console.error("Error GPS:", error);
+                    setGpsError("Gagal mendeteksi lokasi. Pastikan GPS aktif dan izinkan akses lokasi.");
+                }
+            );
+        } else {
+            setGpsError("Browser Anda tidak mendukung Geolocation.");
+        }
+        
         if (currentUser?.role == 'verified') {
             setFormData(prev => ({
                 ...prev,
@@ -32,6 +52,11 @@ export default function Form({onClose, currentUser, onSuccess}) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!userLocation.lat || !userLocation.lon) {
+            alert("Sedang mendeteksi lokasi Anda... Mohon tunggu atau izinkan akses GPS.");
+            return;
+        }
 
         if (!currentUser) {
             alert("Loading User data, please wait..");
@@ -52,6 +77,8 @@ export default function Form({onClose, currentUser, onSuccess}) {
         data.append('lat', formData.lat);
         data.append('lon', formData.lon);
         data.append('location_name', formData.location_name);
+        data.append('user_device_lat', userLocation.lat);
+        data.append('user_device_lon', userLocation.lon);
         
         if (imageFile) {
             data.append('image', imageFile);
@@ -76,7 +103,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                 }
                 
             } else {
-                alert("Gagal mengirim laporan!");
+                alert("Gagal mengirim laporan! Kamu tidak dapat mengirim laporan untuk lokasi yang jauh!");
             }
 
         } catch (error) {
@@ -94,6 +121,11 @@ export default function Form({onClose, currentUser, onSuccess}) {
                 <div className="flex mt-5 justify-center text-3xl font-semibold">
                     <h1>Form Laporan Bencana</h1>
                 </div>
+                {gpsError && (
+                    <div className="absolute top-0 left-0 w-full bg-red-500 text-white p-2 text-center text-sm z-50">
+                        {gpsError}
+                    </div>
+                )}
                 <form onSubmit={handleSubmit} className="w-[95%] h-[85%] mb-10 rounded-2xl shadow-[0px_2px_20px_rgba(0,0,0,0.35)] flex flex-col items-center justify-center">
                     <div className="flex flex-col w-full my-5 gap-2">
                         <div className="flex gap-3 items-center justify-around mx-50">
