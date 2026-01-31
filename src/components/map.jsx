@@ -51,11 +51,11 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
             label: 'Longsor', 
         }, 
         { 
-            id: 'kecelakaan', 
-            label: 'Kecelakaan', 
+            id: 'akses tertutup', 
+            label: 'Akses Tertutup', 
         }, 
         { 
-            id: 'fefault', 
+            id: 'default', 
             label: 'Default', 
         }, 
     ];
@@ -65,7 +65,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
         kebakaran: true,
         gempa: true,
         longsor: true,
-        kecelakaan: true,
+        'akses tertutup': true,
         lainnya: true
     });
 
@@ -152,10 +152,8 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                 })}
                 {reports
                     .filter((item) => {
-                        // Ambil tipe laporan (misal: "Banjir") -> jadikan "banjir"
                         const typeKey = item.type ? item.type.toLowerCase() : 'lainnya';
                         
-                        // Cek apakah di filterState nilainya true?
                         return filterState[typeKey] === true;
                     })
                     .map((item) => (
@@ -185,7 +183,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
             <div className="absolute w-full h-full top-0 z-1000 pointer-events-none">
                 <div className={`justify-center items-center h-full bg-black/20 backdrop-blur-[1px] pointer-events-auto transition-all duration-300 ${activeTab === 'form' ? 'flex' : 'hidden'}`}>
                     {activeTab === 'form' && (
-                        <Form currentUser={currentUser} onClose={null} onSuccess={handleReportSuccess}/>
+                        <Form  currentUser={currentUser} onClose={handleCloseTab} onSuccess={handleReportSuccess}/>
                     )}
                 </div>
             </div>

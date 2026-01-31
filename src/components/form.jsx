@@ -113,7 +113,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                                     <option value="Gempa">Gempa</option>
                                     <option value="Kebakaran">Kebakaran</option>
                                     <option value="Longsor">Longsor</option>
-                                    <option value="Kecelakaan">Kecelakaan</option>
+                                    <option value="Akses Tertutup">Akses Tertutup</option>
                                     <option value="Lainnya">Lainnya</option>
                                 </select>
                             </div>
