@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import Navbar from "./navbar";
 import bmkg from "../API/bmkg.js"
-import Cuaca from "../API/cuaca.js";
 import Form from "./form.jsx";
 import Table from "./table.jsx";
 import Reports from "../API/reports.js";
@@ -46,14 +45,6 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
             legend: <img src={blueLegend} alt="marker" className="w-5 h-8" /> 
         },
         { 
-            id: 'cuaca', 
-            label: 'Cuaca', 
-            icon: cloudMarker, 
-            legend: (
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#ffffff" class="icon icon-tabler icons-tabler-filled icon-tabler-cloud"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.04 4.305c2.195 -.667 4.615 -.224 6.36 1.176c1.386 1.108 2.188 2.686 2.252 4.34l.003 .212l.091 .003c2.3 .107 4.143 1.961 4.25 4.27l.004 .211c0 2.407 -1.885 4.372 -4.255 4.482l-.21 .005h-11.878l-.222 -.008c-2.94 -.11 -5.317 -2.399 -5.43 -5.263l-.005 -.216c0 -2.747 2.08 -5.01 4.784 -5.417l.114 -.016l.07 -.181c.663 -1.62 2.056 -2.906 3.829 -3.518l.244 -.08z" /></svg>
-            ) 
-        },
-        { 
             id: 'reports', 
             label: 'Laporan Warga', 
             icon: redMarker,
@@ -70,11 +61,9 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
     
     const centerPosition = [-2.5489, 118.0149]; 
     const { data: dataGempa, loading, error } = bmkg();
-    const { allCuaca, loadingCuaca } = Cuaca();
     const [selectedPosition, setSelectedPosition] = useState(null);
    
     const [reports, setReports] = useState([]);
-    // const { reports, loading: loadingReports } = Reports();
 
     const mapRef = useRef(null);
 
@@ -123,7 +112,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                 <Navbar activeTab={activeTab} setActiveTab={setActiveTab}/>
             </nav>
             <div className="absolute w-full h-full right-0 z-999 pointer-events-none">
-                <Sidebar dataGempa={dataGempa} dataReports={reports} loadingCuaca={loadingCuaca} allCuaca={allCuaca} onLocationSelect={setSelectedPosition}/>
+                <Sidebar dataGempa={dataGempa} dataReports={reports} onLocationSelect={setSelectedPosition}/>
             </div>
             <div className="absolute w-full h-full left-0 z-999 pointer-events-none">
                 <LegendsBar markers={markerData} isCheck={isCheck} toggleMarker={toggleMarker}/>
@@ -146,38 +135,6 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                         </Marker>
                     );
                 })}
-                {isCheck.cuaca && !loadingCuaca && allCuaca.map((item) => (
-                    <Marker 
-                        key={`cuaca-${item.id}`}
-                        position={[item.lokasi.lat, item.lokasi.lon]}
-                        icon={cloudMarker}
-                    > 
-                        <Popup>
-                            <div className="flex flex-col text-center gap-3 min-w-[100px]">
-                                <div>
-                                    <h1 className="font-semibold">{item.lokasi.kotkab} <br/> Kecamatan {item.lokasi.kecamatan}</h1>
-                                </div>
-                                <div className="w-full flex justify-between">
-                                    {item.current && item.current.slice(0, 4).map((cuaca, index) => (
-                                        <div key={index} className={`flex-1 text-center flex flex-col px-1 ${index !== 3 ? 'border-r border-gray-300' : ''}`}>
-                                            <h1 className="text-xs mb-1">
-                                                {cuaca.local_datetime.split(' ')[1].slice(0, 5)}
-                                            </h1>
-                                            
-                                            <h1 className="font-bold text-blue-600 text-lg">
-                                                {cuaca.t}°C
-                                            </h1>
-                                            
-                                            <h1 className="text-xs">
-                                                {cuaca.weather_desc}
-                                            </h1>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
                 {isCheck.reports && reports && reports.map((item) => (
                     <Marker 
                         key={item.id} 
