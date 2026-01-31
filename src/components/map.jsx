@@ -13,6 +13,7 @@ import blueLegend from 'leaflet/dist/images/marker-icon.png';
 import Profile from "./profile.jsx";
 import Help from "./help.jsx";
 import ReportPopup from "./reportPopup.jsx";
+import { getCategoryIcon } from "../assets/iconUtils.js";
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
@@ -40,16 +41,28 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
     const markerData = [
         { 
             id: 'gempa', 
-            label: 'Gempa Bumi', 
-            icon: blueMarker, 
-            legend: <img src={blueLegend} alt="marker" className="w-5 h-8" /> 
-        },
+            label: 'Gempa', 
+        }, 
         { 
-            id: 'reports', 
-            label: 'Laporan Warga', 
-            icon: redMarker,
-            legend: <img src='https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png' alt="marker" className="w-5 h-8" /> 
-        },
+            id: 'banjir', 
+            label: 'Banjir', 
+        }, 
+        { 
+            id: 'kebakaran', 
+            label: 'Kebakaran', 
+        }, 
+        { 
+            id: 'longsor', 
+            label: 'Longsor', 
+        }, 
+        { 
+            id: 'kecelakaan', 
+            label: 'Kecelakaan', 
+        }, 
+        { 
+            id: 'fefault', 
+            label: 'Default', 
+        }, 
     ];
 
     const toggleMarker = (markerId) => {
@@ -124,7 +137,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                 {isCheck.gempa && dataGempa.map((gempa, idx) => {
                     const coordinatesArray = gempa.Coordinates.split(',').map(parseFloat);
                     return (
-                        <Marker key={idx} position={coordinatesArray} icon={blueMarker}>
+                        <Marker key={idx} position={coordinatesArray} icon={getCategoryIcon('Gempa')}>
                             <Popup>
                                 <div className="text-center flex flex-col gap-3">
                                     <h1 className="font-bold text-lg">{gempa.Wilayah}</h1>
@@ -139,9 +152,13 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                     <Marker 
                         key={item.id} 
                         position={[item.lat, item.lon]}
-                        icon={redMarker}>
+                        icon={getCategoryIcon(item.type)} 
+                    >
                         <Popup className="request-popup">
-                            <ReportPopup report={item} currentUser={currentUser}/>
+                            <ReportPopup 
+                                report={item} 
+                                currentUser={currentUser}
+                            />
                         </Popup>
                     </Marker>
                 ))}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getIconHtml } from '../assets/iconUtils';
 
 export default function LegendsBar({ markers, isCheck, toggleMarker }) {
     const [isOpen, setIsOpen] = useState(true);
@@ -28,6 +29,9 @@ export default function LegendsBar({ markers, isCheck, toggleMarker }) {
                     <div className="flex-1 overflow-y-auto p-4 space-y-2">
                         {markers.map((marker) => {
                             const isVisible = isCheck[marker.id];
+                            
+                            const iconHtml = getIconHtml(marker.label);
+
                             return (
                                 <div 
                                     key={marker.id} 
@@ -35,9 +39,12 @@ export default function LegendsBar({ markers, isCheck, toggleMarker }) {
                                     onClick={() => toggleMarker(marker.id)}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-lg bg-white shadow-sm flex items-center justify-center border border-gray-50 text-xl">
-                                            {marker.legend}
-                                        </div>
+                                        
+                                        <div 
+                                            className="transform scale-75 origin-left"
+                                            dangerouslySetInnerHTML={{ __html: iconHtml }}
+                                        />
+
                                         <span className="text-sm font-semibold text-gray-600 group-hover:text-gray-900">{marker.label}</span>
                                     </div>
 

@@ -1,0 +1,58 @@
+// components/IconUtils.js
+import L from 'leaflet';
+
+// 1. KITA DEFINISIKAN DATA MENTAHNYA DULU (Config)
+// Ini agar bisa dipakai di React Component & Leaflet
+export const CATEGORY_STYLES = {
+    'Banjir': {
+        color: 'border-blue-500 text-blue-600',
+        path: '<path d="M20 6.093l-3-3v-2.093h3v5.093zm1 11.349c.813.315 1.732.558 3 .558v2c-3.896 0-5.083-2-8.002-2-3.04 0-4.436 2-8.002 2-3.684 0-4.376-2-7.996-2v-2c1.275 0 2.217.184 3 .438v-4.438h-3l12-12 12 12h-3v5.442zm-11-3.442v3.692c1.327-.403 2.469-1.089 4-1.45v-2.242h-4zm-2.004 8c-3.184 0-3.767-2-7.996-2v2c3.62 0 4.312 2 7.996 2 3.566 0 4.962-2 8.002-2 2.919 0 4.106 2 8.002 2v-2c-3.649 0-4.438-2-8.002-2-3.581 0-4.977 2-8.002 2z"/>'
+    },
+    'Kebakaran': {
+        color: 'border-red-500 text-red-600',
+        path: '<path d="M14.096 20.206c1.107-.278 2.807-2.732 2.519-5.149-.325.886-1.825 1.731-2.223 1.596.759-1.138 1.613-3.688.613-5.229-.33 1.105-1.105 1.958-1.783 1.957.831-1.397.982-5.532-3.381-6.345 1.924 2.845-2.919 6.269.841 9.729-1.026-.01-2.054-.863-2.577-1.833-.912 2.365.857 4.642 1.71 5.274-4.153-.447-6.508-5.594-5.63-9.637.354 2.153 2.214 2.773 3.001 2.808-5.013-6.063 3.27-8.654 1.391-13.342 3.144.316 6.769 3.615 5.751 7.192.96-.262 1.861-1.222 2.062-2.669 2.023 2.818 1.853 6.179.904 8.348.901-.008 2.268-1.229 2.559-2.47.993 5.943-3.205 9.77-5.757 9.77zm3.904 1.794h-12v2h12v-2z"/>'
+    },
+    'Gempa': {
+        color: 'border-purple-500 text-purple-600',
+        path: '<path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm7 13h-2.279l-.772 2.316c-.317.95-1.48 1.027-1.761-.098-.293-1.173-1.094-5-1.094-5s-.962 6.786-1.115 7.885c-.08.573-.524.889-.972.889-.411 0-.825-.265-.964-.84-.291-1.201-1.262-5.528-1.262-5.528-.186.233-.471.376-.781.376h-3c-.552 0-1-.448-1-1s.448-1 1-1h2.279l.772-2.316c.154-.461.521-.683.886-.683.402 0 .803.269.917.782.217.98.958 4.404.958 4.404s1.077-7.229 1.229-8.325c.079-.567.526-.859.973-.859.417 0 .834.255.952.779l1.249 6.598c.186-.235.473-.38.785-.38h3c.552 0 1 .448 1 1s-.448 1-1 1z"/>'
+    },
+    'Longsor': {
+        color: 'border-amber-600 text-amber-700',
+        path: '<path d="M22.95 9.675C22.25 5.675 19.325 2.15 15.6 0.725C15.35 0.625 15.075 0.775 15 1.025V4.325C15 4.875 14.55 5.325 14 5.325H11.55C11.175 5.325 10.85 5.075 10.7 4.75L9.35 1.35C9.25 1.075 8.925 0.95 8.675 1.075C5.025 2.825 2.4 6.25 2.05 10.325C2.025 10.45 2.125 10.575 2.25 10.575H4.25C4.8 10.575 5.25 11.025 5.25 11.575V13.825C5.25 14.375 4.8 14.825 4.25 14.825H2.075C2.125 15 2.15 15.175 2.225 15.325L7.425 20.525C7.6 20.7 7.725 20.95 7.725 21.225V22.25C7.725 22.65 8.05 23 8.475 23H15.525C15.95 23 16.275 22.675 16.275 22.25V18.975C16.275 18.725 16.375 18.5 16.55 18.325L21.75 13.125C22.05 12.825 22.05 12.35 21.75 12.05L22.95 10.85C23.125 10.65 23.1 10.35 22.95 10.15V9.675ZM18.25 7.325C17.7 7.325 17.25 6.875 17.25 6.325C17.25 5.775 17.7 5.325 18.25 5.325C18.8 5.325 19.25 5.775 19.25 6.325C19.25 6.875 18.8 7.325 18.25 7.325Z"/>'
+    },
+    'Kecelakaan': {
+        color: 'border-yellow-500 text-yellow-600',
+        path: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>'
+    },
+    'Default': {
+        color: 'border-gray-500 text-gray-600',
+        path: '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>'
+    }
+};
+
+// 2. HELPER UNTUK MENGHASILKAN HTML STRING (Dipakai oleh Leaflet & React)
+export const getIconHtml = (type) => {
+    // Normalisasi input (misal 'banjir' jadi 'Banjir') agar aman
+    const key = Object.keys(CATEGORY_STYLES).find(k => k.toLowerCase() === type.toLowerCase()) || 'Default';
+    const style = CATEGORY_STYLES[key];
+
+    return `
+        <div class="relative w-10 h-10 flex items-center justify-center bg-white rounded-full border-2 ${style.color} shadow-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                ${style.path}
+            </svg>
+            <div class="absolute -bottom-1 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white"></div>
+        </div>
+    `;
+};
+
+// 3. FUNGSI UNTUK LEAFLET (Return L.divIcon)
+export const getCategoryIcon = (type) => {
+    return L.divIcon({
+        className: 'custom-leaflet-icon',
+        html: getIconHtml(type), // <--- Kita panggil helper di atas
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
+    });
+};
