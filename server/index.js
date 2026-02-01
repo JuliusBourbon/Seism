@@ -422,6 +422,80 @@ app.post('/api/auth/login', (req, res) => {
     });
 });
 
+// --- ENDPOINT HAPUS LAPORAN ---
+app.delete('/api/reports/:id', (req, res) => {
+    const reportId = req.params.id;
+    const { user_id } = req.body; // ID user yang me-request hapus
+
+    if (!user_id) return res.status(401).json({ error: "Unauthorized" });
+
+    // 1. Cek Kepemilikan & Status Laporan
+    const checkSql = "SELECT * FROM reports WHERE id = ?";
+    db.query(checkSql, [reportId], (err, results) => {
+        if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
+
+        const report = results[0];
+
+        // Cek 1: Apakah yang request adalah Pemilik?
+        // Gunakan '==' untuk antisipasi perbedaan tipe data (string vs int)
+        if (report.user_id != user_id) {
+            return res.status(403).json({ error: "Anda tidak berhak menghapus laporan ini." });
+        }
+
+        // Cek 2: Apakah Status Pending?
+        if (report.status !== 'pending') {
+            return res.status(400).json({ error: "Laporan yang sudah Valid/Invalid tidak bisa dihapus." });
+        }
+
+        // Cek 3: Safety Check (Sudah ada interaksi?)
+        // Jika sudah ada > 5 total vote, tidak boleh dihapus (cegah hit & run)
+        if ((report.upvotes + report.downvotes) > 5) {
+            return res.status(400).json({ error: "Laporan sudah ramai ditanggapi, tidak dapat dihapus." });
+        }
+
+        // 2. Eksekusi Hapus
+        // Hapus dulu detail vote (foreign key constraint)
+        db.query("DELETE FROM votes_detail WHERE report_id = ?", [reportId], (err) => {
+            // Lalu hapus laporannya
+            db.query("DELETE FROM reports WHERE id = ?", [reportId], (err) => {
+                if (err) return res.status(500).json({ error: "Gagal menghapus laporan" });
+                res.json({ message: "Laporan berhasil dihapus" });
+            });
+        });
+    });
+});
+
+// --- ENDPOINT RESOLVE LAPORAN (Tandai Selesai) ---
+app.put('/api/reports/:id/resolve', (req, res) => {
+    const reportId = req.params.id;
+    const { user_id } = req.body;
+
+    if (!user_id) return res.status(401).json({ error: "Unauthorized" });
+
+    // 1. Cek Kepemilikan
+    const checkSql = "SELECT * FROM reports WHERE id = ?";
+    db.query(checkSql, [reportId], (err, results) => {
+        if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
+
+        const report = results[0];
+
+        if (report.user_id != user_id) {
+            return res.status(403).json({ error: "Bukan milik Anda." });
+        }
+
+        // 2. Update Status
+        const updateSql = "UPDATE reports SET status = 'resolved', updated_at = NOW() WHERE id = ?";
+        db.query(updateSql, [reportId], (err) => {
+            if (err) return res.status(500).json({ error: "Gagal update status" });
+            
+            res.json({ 
+                message: "Status berhasil diubah menjadi Resolved", 
+                new_status: 'resolved' 
+            });
+        });
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on Port: ${PORT}`);

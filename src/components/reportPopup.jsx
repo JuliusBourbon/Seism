@@ -1,7 +1,52 @@
 import { useState, useEffect } from "react";
 
 export default function ReportPopup({ report, currentUser }) {
-    
+    const isOwner = currentUser && report.user_id && (currentUser.id == report.user_id)
+    const handleDelete = async () => {
+        if (!window.confirm("Yakin ingin menghapus laporan ini?")) return;
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/reports/${report.id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: currentUser.id })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                alert("Laporan dihapus. Refresh peta untuk melihat perubahan.");
+                window.location.reload();
+            } else {
+                alert(result.error);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    const handleResolve = async () => {
+        if (!window.confirm("Tandai laporan ini sebagai SELESAI (Resolved)?")) return;
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/reports/${report.id}/resolve`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: currentUser.id })
+            });
+            
+            const result = await response.json();
+
+            if (response.ok) {
+                alert("Status berhasil diubah!");
+                window.location.reload();
+            } else {
+                alert(result.error);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     const [votes, setVotes] = useState({
         up: report.upvotes || 0,
         down: report.downvotes || 0
@@ -161,6 +206,34 @@ export default function ReportPopup({ report, currentUser }) {
                 </span>
             </div>
         </div>
+
+        {isOwner && (
+            <div className="flex gap-2 mb-3 border-t border-gray-100 pt-2">
+                {report.status === 'pending' && (
+                    <button 
+                        onClick={handleDelete}
+                        className="flex-1 py-1.5 rounded-md bg-red-50 text-red-600 text-xs font-bold border border-red-200 hover:bg-red-100 transition-colors"
+                    >
+                        Hapus Laporan
+                    </button>
+                )}
+
+                {report.status !== 'resolved' && report.status !== 'invalid' && (
+                    <button 
+                        onClick={handleResolve}
+                        className="flex-1 py-1.5 rounded-md bg-blue-50 text-blue-600 text-xs font-bold border border-blue-200 hover:bg-blue-100 transition-colors"
+                    >
+                        Tandai Selesai
+                    </button>
+                )}
+                
+                {report.status === 'resolved' && (
+                    <div className="w-full py-1.5 text-center text-xs font-bold text-gray-400 bg-gray-50 rounded border border-gray-100">
+                        Laporan Selesai
+                    </div>
+                )}
+            </div>
+        )}
 
         <div className="flex gap-1 items-center justify-between pt-2 mt-1">
             <button
