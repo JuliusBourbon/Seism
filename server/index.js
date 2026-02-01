@@ -44,12 +44,11 @@ const storage = multer.diskStorage({
         cb(null, uniqueSuffix + path.extname(file.originalname));
     }
 })
-const upload = multer({ storage: storage });
 
+const upload = multer({ storage: storage });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 
 app.post('/api/reports', upload.single('image'), (req, res) => {
     const { 
@@ -162,6 +161,7 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
         processRateLimit(20, false);
     }
 });
+
 app.get('/api/reports/:id/vote-status', (req, res) => {
     const reportId = req.params.id;
     const userId = req.query.user_id;
@@ -191,42 +191,86 @@ app.post('/api/reports/:id/vote', (req, res) => {
     db.query(checkSql, [reportId, user_id], (err, results) => {
         if (err) return res.status(500).json({ error: "Database error" });
 
-        let actionQuery = "";
-        let actionParams = [];
+        let detailQuery = "";
+        let detailParams = [];
+        
+        let upChange = 0;
+        let downChange = 0;
 
         if (results.length === 0) {
-            actionQuery = "INSERT INTO votes_detail (report_id, user_id, vote_type) VALUES (?, ?, ?)";
-            actionParams = [reportId, user_id, type];
+            detailQuery = "INSERT INTO votes_detail (report_id, user_id, vote_type) VALUES (?, ?, ?)";
+            detailParams = [reportId, user_id, type];
+            
+            if (type === 'up') upChange = 1;
+            else downChange = 1;
+
         } else {
             const currentVote = results[0].vote_type;
+
             if (currentVote === type) {
-                actionQuery = "DELETE FROM votes_detail WHERE report_id = ? AND user_id = ?";
-                actionParams = [reportId, user_id];
+                detailQuery = "DELETE FROM votes_detail WHERE report_id = ? AND user_id = ?";
+                detailParams = [reportId, user_id];
+
+                if (type === 'up') upChange = -1;
+                else downChange = -1;
+
             } else {
-                actionQuery = "UPDATE votes_detail SET vote_type = ? WHERE report_id = ? AND user_id = ?";
-                actionParams = [type, reportId, user_id];
+                detailQuery = "UPDATE votes_detail SET vote_type = ? WHERE report_id = ? AND user_id = ?";
+                detailParams = [type, reportId, user_id];
+
+                if (type === 'up') {
+                    upChange = 1; 
+                    downChange = -1; 
+                } else {
+                    upChange = -1; 
+                    downChange = 1;
+                }
             }
         }
 
-        db.query(actionQuery, actionParams, (err, result) => {
-            if (err) return res.status(500).json({ error: "Failed to update vote" });
+        
+        db.query(detailQuery, detailParams, (err) => {
+            if (err) return res.status(500).json({ error: "Gagal update history vote" });
 
-            const countSql = `
-                UPDATE reports r
+            const updateCountSql = `
+                UPDATE reports 
                 SET 
-                    upvotes = (SELECT COUNT(*) FROM votes_detail WHERE report_id = r.id AND vote_type = 'up'),
-                    downvotes = (SELECT COUNT(*) FROM votes_detail WHERE report_id = r.id AND vote_type = 'down')
-                WHERE r.id = ?
+                    upvotes = GREATEST(0, upvotes + ?), 
+                    downvotes = GREATEST(0, downvotes + ?)
+                WHERE id = ?
             `;
 
-            db.query(countSql, [reportId], (err, result) => {
-                if (err) return res.status(500).json({ error: "Failed to sync counts" });
+            db.query(updateCountSql, [upChange, downChange, reportId], (err) => {
+                if (err) return res.status(500).json({ error: "Gagal update angka vote" });
 
-                db.query("SELECT upvotes, downvotes FROM reports WHERE id = ?", [reportId], (err, newCounts) => {
-                    res.json({ 
-                        message: "Vote updated", 
-                        new_counts: newCounts[0]
-                    });
+                db.query("SELECT upvotes, downvotes FROM reports WHERE id = ?", [reportId], (err, reportData) => {
+                    if (err || reportData.length === 0) return res.status(500).json({ error: "Gagal mengambil data report" });
+
+                    const up = reportData[0].upvotes;
+                    const down = reportData[0].downvotes;
+
+                    let newStatus = 'pending';
+
+                    if ((up - down) <= -10) {
+                        newStatus = 'invalid';
+                    }
+                    else if ((up + down) > 10 && up >= (2 * down)) {
+                        newStatus = 'valid';
+                    }
+
+                    db.query(
+                        "UPDATE reports SET status = ?, updated_at = NOW() WHERE id = ?", 
+                        [newStatus, reportId], 
+                        (err) => {
+                            if (err) return res.status(500).json({ error: "Gagal update status" });
+
+                            res.json({ 
+                                message: "Vote sukses", 
+                                new_counts: { upvotes: up, downvotes: down },
+                                new_status: newStatus 
+                            });
+                        }
+                    );
                 });
             });
         });
@@ -274,10 +318,20 @@ app.post('/api/auth/guest', (req, res) => {
 })
 
 app.get('/api/reports', (req, res) => {
-    const sql = `SELECT r.*, u.role AS reporter_role 
-            FROM reports r
-            LEFT JOIN users u ON r.user_id = u.id
-            ORDER BY r.created_at DESC`;
+    const sql = `
+        SELECT r.*, u.role AS reporter_role 
+        FROM reports r
+        LEFT JOIN users u ON r.user_id = u.id
+        WHERE 
+            (r.status = 'pending' AND r.created_at > NOW() - INTERVAL 48 HOUR)
+            OR 
+            (r.status = 'valid' AND r.updated_at > NOW() - INTERVAL 168 HOUR)
+            OR
+            (r.status = 'resolved' AND r.updated_at > NOW() - INTERVAL 24 HOUR)
+            OR
+            (r.status = 'invalid' AND r.updated_at > NOW() - INTERVAL 12 HOUR)
+        ORDER BY r.created_at DESC
+    `;
 
     db.query(sql, (err, results) => {
         if (err) {
