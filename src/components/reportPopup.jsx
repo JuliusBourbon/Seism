@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 export default function ReportPopup({ report, currentUser }) {
+    const isVoteLocked = report.status !== 'pending';
     const isOwner = currentUser && report.user_id && (currentUser.id == report.user_id)
     const handleDelete = async () => {
         if (!window.confirm("Yakin ingin menghapus laporan ini?")) return;
@@ -238,7 +239,7 @@ export default function ReportPopup({ report, currentUser }) {
         <div className="flex gap-1 items-center justify-between pt-2 mt-1">
             <button
                 onClick={() => handleVote('up')}
-                disabled={isLoading}
+                disabled={isLoading || isVoteLocked}
                 className={`flex items-center gap-1.5 w-full py-1 rounded-md transition-all group
                     ${userVote === 'up'
                         ? 'bg-green-100 text-green-700 font-bold ring-1 ring-green-400'
@@ -254,7 +255,7 @@ export default function ReportPopup({ report, currentUser }) {
             <div className="h-6 w-px bg-gray-200"></div>
             <button
                 onClick={() => handleVote('down')}
-                disabled={isLoading}
+                disabled={isLoading || isVoteLocked}
                 className={`flex items-center justify-end gap-1.5 w-full py-1 rounded-md transition-all group
                     ${userVote === 'down'
                         ? 'bg-red-100 text-red-700 font-bold ring-1 ring-red-400'

@@ -186,91 +186,101 @@ app.post('/api/reports/:id/vote', (req, res) => {
 
     if (!user_id) return res.status(401).json({ error: "User wajib login" });
 
-    const checkSql = "SELECT * FROM votes_detail WHERE report_id = ? AND user_id = ?";
-    
-    db.query(checkSql, [reportId, user_id], (err, results) => {
-        if (err) return res.status(500).json({ error: "Database error" });
-
-        let detailQuery = "";
-        let detailParams = [];
+    db.query("SELECT status FROM reports WHERE id = ?", [reportId], (err, results) => {
+        if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
         
-        let upChange = 0;
-        let downChange = 0;
-
-        if (results.length === 0) {
-            detailQuery = "INSERT INTO votes_detail (report_id, user_id, vote_type) VALUES (?, ?, ?)";
-            detailParams = [reportId, user_id, type];
+        const currentStatus = results[0].status;
+        
+        if (currentStatus !== 'pending') {
+            return res.status(400).json({ 
+                error: `Voting ditutup. Status laporan sudah final: ${currentStatus}.` 
+            });
+        }
+        const checkSql = "SELECT * FROM votes_detail WHERE report_id = ? AND user_id = ?";
+        db.query(checkSql, [reportId, user_id], (err, results) => {
+            if (err) return res.status(500).json({ error: "Database error" });
+    
+            let detailQuery = "";
+            let detailParams = [];
             
-            if (type === 'up') upChange = 1;
-            else downChange = 1;
-
-        } else {
-            const currentVote = results[0].vote_type;
-
-            if (currentVote === type) {
-                detailQuery = "DELETE FROM votes_detail WHERE report_id = ? AND user_id = ?";
-                detailParams = [reportId, user_id];
-
-                if (type === 'up') upChange = -1;
-                else downChange = -1;
-
+            let upChange = 0;
+            let downChange = 0;
+    
+            if (results.length === 0) {
+                detailQuery = "INSERT INTO votes_detail (report_id, user_id, vote_type) VALUES (?, ?, ?)";
+                detailParams = [reportId, user_id, type];
+                
+                if (type === 'up') upChange = 1;
+                else downChange = 1;
+    
             } else {
-                detailQuery = "UPDATE votes_detail SET vote_type = ? WHERE report_id = ? AND user_id = ?";
-                detailParams = [type, reportId, user_id];
-
-                if (type === 'up') {
-                    upChange = 1; 
-                    downChange = -1; 
+                const currentVote = results[0].vote_type;
+    
+                if (currentVote === type) {
+                    detailQuery = "DELETE FROM votes_detail WHERE report_id = ? AND user_id = ?";
+                    detailParams = [reportId, user_id];
+    
+                    if (type === 'up') upChange = -1;
+                    else downChange = -1;
+    
                 } else {
-                    upChange = -1; 
-                    downChange = 1;
+                    detailQuery = "UPDATE votes_detail SET vote_type = ? WHERE report_id = ? AND user_id = ?";
+                    detailParams = [type, reportId, user_id];
+    
+                    if (type === 'up') {
+                        upChange = 1; 
+                        downChange = -1; 
+                    } else {
+                        upChange = -1; 
+                        downChange = 1;
+                    }
                 }
             }
-        }
-
-        
-        db.query(detailQuery, detailParams, (err) => {
-            if (err) return res.status(500).json({ error: "Gagal update history vote" });
-
-            const updateCountSql = `
-                UPDATE reports 
-                SET 
-                    upvotes = GREATEST(0, upvotes + ?), 
-                    downvotes = GREATEST(0, downvotes + ?)
-                WHERE id = ?
-            `;
-
-            db.query(updateCountSql, [upChange, downChange, reportId], (err) => {
-                if (err) return res.status(500).json({ error: "Gagal update angka vote" });
-
-                db.query("SELECT upvotes, downvotes FROM reports WHERE id = ?", [reportId], (err, reportData) => {
-                    if (err || reportData.length === 0) return res.status(500).json({ error: "Gagal mengambil data report" });
-
-                    const up = reportData[0].upvotes;
-                    const down = reportData[0].downvotes;
-
-                    let newStatus = 'pending';
-
-                    if ((up - down) <= -10) {
-                        newStatus = 'invalid';
-                    }
-                    else if ((up + down) > 10 && up >= (2 * down)) {
-                        newStatus = 'valid';
-                    }
-
-                    db.query(
-                        "UPDATE reports SET status = ?, updated_at = NOW() WHERE id = ?", 
-                        [newStatus, reportId], 
-                        (err) => {
-                            if (err) return res.status(500).json({ error: "Gagal update status" });
-
-                            res.json({ 
-                                message: "Vote sukses", 
-                                new_counts: { upvotes: up, downvotes: down },
-                                new_status: newStatus 
-                            });
+    
+            
+            db.query(detailQuery, detailParams, (err) => {
+                if (err) return res.status(500).json({ error: "Gagal update history vote" });
+    
+                const updateCountSql = `
+                    UPDATE reports 
+                    SET 
+                        upvotes = GREATEST(0, upvotes + ?), 
+                        downvotes = GREATEST(0, downvotes + ?)
+                    WHERE id = ?
+                `;
+    
+                db.query(updateCountSql, [upChange, downChange, reportId], (err) => {
+                    if (err) return res.status(500).json({ error: "Gagal update angka vote" });
+    
+                    db.query("SELECT upvotes, downvotes FROM reports WHERE id = ?", [reportId], (err, reportData) => {
+                        if (err || reportData.length === 0) return res.status(500).json({ error: "Gagal mengambil data report" });
+    
+                        const up = reportData[0].upvotes;
+                        const down = reportData[0].downvotes;
+    
+                        let newStatus = 'pending';
+    
+                        if ((up - down) <= -10) {
+                            newStatus = 'invalid';
                         }
-                    );
+                        else if ((up + down) > 10 && up >= (2 * down)) {
+                            newStatus = 'valid';
+                        }
+    
+                        db.query(
+                            "UPDATE reports SET status = ?, updated_at = NOW() WHERE id = ?", 
+                            [newStatus, reportId], 
+                            (err) => {
+                                if (err) return res.status(500).json({ error: "Gagal update status" });
+    
+                                res.json({ 
+                                    message: "Vote sukses", 
+                                    new_counts: { upvotes: up, downvotes: down },
+                                    new_status: newStatus 
+                                });
+                            }
+                        );
+                    });
                 });
             });
         });
@@ -422,41 +432,30 @@ app.post('/api/auth/login', (req, res) => {
     });
 });
 
-// --- ENDPOINT HAPUS LAPORAN ---
 app.delete('/api/reports/:id', (req, res) => {
     const reportId = req.params.id;
-    const { user_id } = req.body; // ID user yang me-request hapus
+    const { user_id } = req.body; 
 
     if (!user_id) return res.status(401).json({ error: "Unauthorized" });
 
-    // 1. Cek Kepemilikan & Status Laporan
     const checkSql = "SELECT * FROM reports WHERE id = ?";
     db.query(checkSql, [reportId], (err, results) => {
         if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
 
         const report = results[0];
 
-        // Cek 1: Apakah yang request adalah Pemilik?
-        // Gunakan '==' untuk antisipasi perbedaan tipe data (string vs int)
         if (report.user_id != user_id) {
             return res.status(403).json({ error: "Anda tidak berhak menghapus laporan ini." });
         }
 
-        // Cek 2: Apakah Status Pending?
         if (report.status !== 'pending') {
             return res.status(400).json({ error: "Laporan yang sudah Valid/Invalid tidak bisa dihapus." });
         }
-
-        // Cek 3: Safety Check (Sudah ada interaksi?)
-        // Jika sudah ada > 5 total vote, tidak boleh dihapus (cegah hit & run)
         if ((report.upvotes + report.downvotes) > 5) {
             return res.status(400).json({ error: "Laporan sudah ramai ditanggapi, tidak dapat dihapus." });
         }
 
-        // 2. Eksekusi Hapus
-        // Hapus dulu detail vote (foreign key constraint)
         db.query("DELETE FROM votes_detail WHERE report_id = ?", [reportId], (err) => {
-            // Lalu hapus laporannya
             db.query("DELETE FROM reports WHERE id = ?", [reportId], (err) => {
                 if (err) return res.status(500).json({ error: "Gagal menghapus laporan" });
                 res.json({ message: "Laporan berhasil dihapus" });
@@ -465,14 +464,12 @@ app.delete('/api/reports/:id', (req, res) => {
     });
 });
 
-// --- ENDPOINT RESOLVE LAPORAN (Tandai Selesai) ---
 app.put('/api/reports/:id/resolve', (req, res) => {
     const reportId = req.params.id;
     const { user_id } = req.body;
 
     if (!user_id) return res.status(401).json({ error: "Unauthorized" });
 
-    // 1. Cek Kepemilikan
     const checkSql = "SELECT * FROM reports WHERE id = ?";
     db.query(checkSql, [reportId], (err, results) => {
         if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
@@ -483,7 +480,6 @@ app.put('/api/reports/:id/resolve', (req, res) => {
             return res.status(403).json({ error: "Bukan milik Anda." });
         }
 
-        // 2. Update Status
         const updateSql = "UPDATE reports SET status = 'resolved', updated_at = NOW() WHERE id = ?";
         db.query(updateSql, [reportId], (err) => {
             if (err) return res.status(500).json({ error: "Gagal update status" });
