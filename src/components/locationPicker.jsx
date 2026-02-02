@@ -1,111 +1,108 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } from 'react-leaflet';
 import L from 'leaflet';
+import iconMarker from 'leaflet/dist/images/marker-icon.png';
+import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-const pinIcon = new L.DivIcon({
-    html: '<div style="font-size: 30px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">📍</div>',
-    className: 'bg-transparent',
-    iconSize: [30, 30],
-    iconAnchor: [15, 30] 
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: iconRetina,
+    iconUrl: iconMarker,
+    shadowUrl: iconShadow,
 });
 
-// Helper Recenter map
 const RecenterAutomatically = ({ lat, lng }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (lat && lng) {
-      map.flyTo([lat, lng]);
-    }
-  }, [lat, lng, map]);
-  return null;
+    const map = useMap();
+    useEffect(() => {
+        if (lat && lng) {
+            map.flyTo([lat, lng], 14, { animate: false });
+        }
+    }, [lat, lng, map]);
+    return null;
 };
 
-export default function LocationPicker({ onLocationChange }){
-    const [position, setPosition] = useState({ lat: -6.2000, lng: 106.8166 });
-    const [isGPSActive, setIsGPSActive] = useState(false);
+function DraggableMarker({ position, setPosition, onLocationChange, userPosition }) {
+    const markerRef = useRef(null)
 
-    // Location Detector
-    const handleGetLocation = () => {
-        if (!navigator.geolocation) {
-            alert("Geolocation is not available in your browser");
-            return;
-        }
-
-        setIsGPSActive(true);
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const newPos = {
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude
-                };
-                setPosition(newPos);
-                onLocationChange(newPos); 
-                setIsGPSActive(false);
-            },
-            (err) => {
-                alert("Failed to fetch position: " + err.message);
-                setIsGPSActive(false);
-            }
-        );
-    };
-
-    // Draggable Pin
-    const markerRef = useRef(null);
     const eventHandlers = useMemo(
         () => ({
             dragend() {
-                const marker = markerRef.current;
+                const marker = markerRef.current
                 if (marker != null) {
                     const newPos = marker.getLatLng();
-                    setPosition(newPos);
-                    onLocationChange({ lat: newPos.lat, lng: newPos.lng });
+                    
+                    if (userPosition) {
+                        const start = L.latLng(userPosition[0], userPosition[1]);
+                        const distance = start.distanceTo(newPos);
+                        
+                        if (distance > 10000) {
+                            alert("Lokasi pin terlalu jauh dari posisi Anda! Maksimal 10km.");
+                        }
+                    }
+
+                    setPosition(newPos)
+                    onLocationChange(newPos)
                 }
             },
         }),
-        [onLocationChange],
-    );
+        [onLocationChange, userPosition?.[0], userPosition?.[1]],
+    )
 
     return (
-        <div className="space-y-3">
-            <div className="h-64 w-full  rounded-lg border border-black/30 overflow-hidden relative z-0">
-                <MapContainer center={position} zoom={13} className="h-full w-full">
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <RecenterAutomatically lat={position.lat} lng={position.lng} />
-                    <div className='absolute z-1000 w-full pointer-events-none'>
-                        <div className='flex w-full justify-end'>
-                            <button type="button" onClick={handleGetLocation} className="bg-white font-bold py-2 px-3 rounded flex items-center justify-center hover:bg-blue-100 transition cursor-pointer m-2 pointer-events-auto">
-                                {isGPSActive ? <svg width="24px" height="24px" strokeWidth="2.4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
-                                        <path d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19Z" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path>
-                                        <path d="M12 19V21" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path><path d="M5 12H3" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path>
-                                        <path d="M12 5V3" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path><path d="M19 12H21" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path>
-                                    </svg> : <svg width="24px" height="24px" strokeWidth="2.4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
-                                        <path d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19Z" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path>
-                                        <path d="M12 19V21" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path><path d="M5 12H3" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path>
-                                        <path d="M12 5V3" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path><path d="M19 12H21" stroke="#000000" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path>
-                                    </svg>
-                                }
-                            </button>
-                        </div>
-                    </div>
-                    <div className='absolute z-1000 w-full pointer-events-none top-0'>
-                        <div className='flex w-full justify-center mt-2'>
-                            <p className="text-sm text-gray-700 text-center rounded-xl bg-white px-2 py-1 pointer-events-auto">
-                                Koordinat terpilih: <span className='font-semibold'>{position.lat.toFixed(6)}, {position.lng.toFixed(6)}</span>
-                            </p>
-                        </div>
-                    </div>
-                    <Marker
-                        draggable={true}
-                        eventHandlers={eventHandlers}
-                        position={position}
-                        ref={markerRef}
-                        icon={pinIcon}
-                    >
-                        <Popup>Geser pin ini ke titik kejadian!</Popup>
-                    </Marker>
-                </MapContainer>
-            </div>
+        <Marker
+            draggable={true}
+            eventHandlers={eventHandlers}
+            position={position}
+            ref={markerRef}>
+            <Popup minWidth={90}>
+                <span>Geser pin ini ke lokasi kejadian.</span>
+            </Popup>
+        </Marker>
+    )
+}
 
+export default function LocationPicker({ onLocationChange, userPosition }) {
+    const defaultCenter = [-2.5489, 118.0149]; 
+    
+    const [markerPosition, setMarkerPosition] = useState(defaultCenter);
+
+    useEffect(() => {
+        if (userPosition) {
+            const newPos = { lat: userPosition[0], lng: userPosition[1] };
+            setMarkerPosition(newPos);
+            onLocationChange(newPos); 
+        }
+    }, [userPosition?.[0], userPosition?.[1]]);
+    const centerMap = userPosition ? userPosition : defaultCenter;
+
+    return (
+        <div className="h-full w-full relative z-0">
+             <MapContainer center={centerMap} zoom={5} scrollWheelZoom={true} className="h-full w-full z-0">
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+
+                {userPosition && (
+                    <RecenterAutomatically lat={userPosition[0]} lng={userPosition[1]} />
+                )}
+
+                {userPosition && (
+                    <Circle 
+                        center={userPosition} 
+                        radius={10000} 
+                        pathOptions={{ color: 'blue', fillColor: '#3b82f6', fillOpacity: 0.1, weight: 1, dashArray: '5, 5' }} 
+                    />
+                )}
+
+                <DraggableMarker 
+                    position={markerPosition} 
+                    setPosition={setMarkerPosition} 
+                    onLocationChange={onLocationChange}
+                    userPosition={userPosition}
+                />
+            </MapContainer>
         </div>
     );
 }

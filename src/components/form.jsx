@@ -161,8 +161,15 @@ export default function Form({onClose, currentUser, onSuccess}) {
                     <div>
                         <label className="block font-semibold text-gray-700 mb-2">Titik Lokasi (Geser Pin)</label>
                         <div className="h-64 w-full rounded-xl overflow-hidden border border-gray-300 shadow-inner">
-                            <LocationPicker onLocationChange={handleLocationUpdate} />
+                            <LocationPicker onLocationChange={handleLocationUpdate} userPosition={
+                                    userLocation.lat && userLocation.lon 
+                                    ? [userLocation.lat, userLocation.lon] 
+                                    : null
+                                } />
                         </div>
+                        <p className="text-xs text-gray-500 mt-1 italic">
+                            *Pin harus berada di dalam lingkaran biru (radius 5km dari lokasi Anda).
+                        </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
