@@ -336,6 +336,34 @@ app.get('/api/reports', (req, res) => {
     });
 });
 
+app.get('/api/reports/report_history', (req, res) => {
+    const sql = `
+        SELECT r.*, u.username as reporter_name, u.role as reporter_role
+        FROM reports r
+        LEFT JOIN users u ON r.user_id = u.id
+        ORDER BY r.created_at DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Failed to fetch history:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+        res.json(results);
+    });
+});
+
+app.get('/api/disaster_history', (req, res) => {
+    const sql = "SELECT * FROM disaster_history ORDER BY id DESC LIMIT 100";
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Failed to fetch history:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+        res.json(results);
+    });
+});
+
 app.post('/api/auth/register', async (req, res) => {
     const { username, email, password } = req.body;
 

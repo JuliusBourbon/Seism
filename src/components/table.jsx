@@ -1,159 +1,228 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 
 export default function Table({ onClose }) {
     const [activeTab, setActiveTab] = useState('reports');
-    const [reports, setReports] = useState([]);
-    const [quakes, setQuakes] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [dataReports, setDataReports] = useState([]);
+    const [dataDisasters, setDataDisasters] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            try {
-                const reportRes = await fetch('http://localhost:3000/api/reports');
-                const reportData = await reportRes.json();
-                setReports(reportData);
+        setLoading(true);
+        if (activeTab === 'reports') {
+            fetch('http://localhost:3000/api/reports/report_history')
+                .then(res => res.json())
+                .then(data => {
+                    setDataReports(data);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error(err);
+                    setLoading(false);
+                });
+        } else {
+            fetch('http://localhost:3000/api/disaster_history')
+                .then(res => res.json())
+                .then(data => {
+                    setDataDisasters(data);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error(err);
+                    setLoading(false);
+                });
+        }
+    }, [activeTab]);
 
-                const bmkgRes = await fetch('https://data.bmkg.go.id/DataMKG/TEWS/gempaterkini.json');
-                const bmkgData = await bmkgRes.json();
-                setQuakes(bmkgData.Infogempa.gempa);
+    const formatDate = (isoString) => {
+        if (!isoString) return '-';
+        const date = new Date(isoString);
+        return date.toLocaleDateString('id-ID', {
+            day: 'numeric', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    };
 
-            } catch (error) {
-                console.error("Gagal mengambil data:", error);
-            } finally {
-                setIsLoading(false);
-            }
+    const StatusBadge = ({ status }) => {
+        const styles = {
+            valid: 'bg-green-100 text-green-700 border-green-200',
+            invalid: 'bg-red-100 text-red-700 border-red-200',
+            pending: 'bg-gray-100 text-gray-700 border-gray-200',
+            resolved: 'bg-blue-100 text-blue-700 border-blue-200',
         };
-
-        fetchData();
-    }, []);
-
-    // Format Tanggal agar enak dibaca
-    const formatDate = (dateString) => {
-        const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return new Date(dateString).toLocaleDateString('id-ID', options);
+        const labels = {
+            valid: 'Valid',
+            invalid: 'Invalid',
+            pending: 'Pending',
+            resolved: 'Resolved',
+        };
+        return (
+            <span className={`px-2 py-1 rounded-full text-xs font-bold border ${styles[status] || styles.pending}`}>
+                {labels[status] || status}
+            </span>
+        );
     };
 
     return (
-        <div className="bg-white rounded-2xl w-[95%] h-[85%] relative pointer-events-auto shadow-2xl mt-15 flex flex-col overflow-hidden">
-            
-            <div className="absolute top-0 right-0 z-10 p-5">
-                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-500 hover:text-red-600 transition-colors font-bold">✕</button>
-            </div>
-
-            <div className="pt-8 pb-4 flex flex-col items-center shrink-0">
-                <h1 className="text-3xl font-bold text-[#00165D] mb-6">Table</h1>
-                
-                <div className="flex bg-gray-100 p-1 rounded-xl">
-                    <button 
-                        onClick={() => setActiveTab('reports')}
-                        className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'reports' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Laporan Warga
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('bmkg')}
-                        className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'bmkg' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Data BMKG (Gempa)
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex-1 w-full px-8 pb-8 overflow-hidden">
-                <div className="w-full h-full border border-gray-200 rounded-2xl overflow-hidden flex flex-col bg-white shadow-inner">
+        <div className="bg-white rounded-2xl w-[90%] h-[90%] relative shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-gray-200">
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center sticky top-0 z-10">
+                <div className="flex gap-4 items-center">
+                    <h1 className="text-2xl font-bold text-slate-800">Data Historis</h1>
                     
-                    <div className="overflow-x-auto overflow-y-auto h-full scrollbar-thin scrollbar-thumb-gray-300">
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-gray-50 sticky top-0 z-10">
-                                <tr>
-                                    {activeTab === 'reports' ? (
-                                        <>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Waktu</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Pelapor</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Kejadian</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Lokasi</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b text-center">Status</th>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Waktu & Tanggal</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Magnitudo</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Kedalaman</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Lokasi</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider border-b">Potensi</th>
-                                        </>
-                                    )}
-                                </tr>
-                            </thead>
-                            
-                            <tbody className="divide-y divide-gray-100">
-                                {isLoading ? (
-                                    <tr>
-                                        <td colSpan="5" className="p-10 text-center text-gray-400">
-                                            Sedang memuat data...
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    activeTab === 'reports' ? (
-                                        reports.length > 0 ? reports.map((item) => (
-                                            <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
-                                                <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
-                                                    {formatDate(item.created_at)}
-                                                </td>
-                                                <td className="p-4 text-sm font-medium text-gray-800">
-                                                    {item.reporter_name || "Anonim"}
-                                                    <div className="text-[10px] text-gray-400 font-mono">{item.user_identifier?.substring(0,8)}...</div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <span className={`px-2 py-1 rounded text-xs font-bold 
-                                                        ${item.type === 'Banjir' ? 'bg-blue-100 text-blue-600' : 
-                                                          item.type === 'Kebakaran' ? 'bg-red-100 text-red-600' :
-                                                          'bg-orange-100 text-orange-600'}`}>
-                                                        {item.type}
-                                                    </span>
-                                                    <div className="text-xs text-gray-500 mt-1 truncate max-w-[200px]">{item.title}</div>
-                                                </td>
-                                                <td className="p-4 text-sm text-gray-600 truncate max-w-[150px]" title={item.location_name}>
-                                                    {item.location_name}
-                                                </td>
-                                                <td className="p-4 text-center">
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-xs font-bold text-green-600">+{item.upvotes}</span>
-                                                        <span className="text-[10px] text-gray-400">Validasi</span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )) : (
-                                            <tr><td colSpan="5" className="p-8 text-center text-gray-400">Belum ada laporan masuk</td></tr>
-                                        )
-                                    ) : (
-                                        quakes.length > 0 ? quakes.map((gempa, index) => (
-                                            <tr key={index} className="hover:bg-orange-50/50 transition-colors">
-                                                <td className="p-4 text-sm text-gray-600">
-                                                    <div className="font-bold">{gempa.Jam}</div>
-                                                    <div className="text-xs text-gray-400">{gempa.Tanggal}</div>
-                                                </td>
-                                                <td className="p-4 text-sm font-bold text-gray-800">
-                                                    <span className={`px-2 py-1 rounded ${parseFloat(gempa.Magnitude) >= 5.0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                                        {gempa.Magnitude} SR
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 text-sm text-gray-600">{gempa.Kedalaman}</td>
-                                                <td className="p-4 text-sm text-gray-600 font-medium">{gempa.Wilayah}</td>
-                                                <td className="p-4 text-sm text-gray-500 italic">{gempa.Potensi}</td>
-                                            </tr>
-                                        )) : (
-                                            <tr><td colSpan="5" className="p-8 text-center text-gray-400">Gagal memuat data BMKG</td></tr>
-                                        )
-                                    )
-                                )}
-                            </tbody>
-                        </table>
+                    <div className="flex bg-white rounded-lg p-1 border border-gray-300 shadow-sm">
+                        <button
+                            onClick={() => setActiveTab('reports')}
+                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+                                activeTab === 'reports' 
+                                ? 'bg-blue-600 text-white shadow-md' 
+                                : 'text-gray-500 hover:bg-gray-100'
+                            }`}
+                        >
+                            Laporan Warga
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('disasters')}
+                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+                                activeTab === 'disasters' 
+                                ? 'bg-orange-600 text-white shadow-md' 
+                                : 'text-gray-500 hover:bg-gray-100'
+                            }`}
+                        >
+                            Gempa BMKG
+                        </button>
                     </div>
-
                 </div>
+
+                <button 
+                    onClick={onClose} 
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all font-bold shadow-sm"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <div className="flex-1 overflow-auto p-0 bg-white">
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                        <svg className="animate-spin h-8 w-8 mb-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p className="text-sm font-semibold">Mengambil data...</p>
+                    </div>
+                ) : (
+                    <table className="w-full text-left border-collapse">
+                        {activeTab === 'reports' ? (
+                            <>
+                                <thead className="bg-slate-50 sticky top-0 z-0 shadow-sm">
+                                    <tr>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">No</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Pelapor</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Jenis</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Judul</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Lokasi</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Status</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Votes</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {dataReports.length === 0 ? (
+                                        <tr><td colSpan="6" className="p-8 text-center text-gray-400">Belum ada laporan tercatat.</td></tr>
+                                    ) : dataReports.map((item, index) => (
+                                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                                            <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
+                                               { index + 1 }
+                                            </td>
+                                            <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
+                                                {formatDate(item.created_at)}
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-semibold text-gray-700">{item.user_name}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-blue-600 uppercase mb-0.5">{item.type}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm text-gray-900 font-medium line-clamp-1">{item.title}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-sm text-gray-600 max-w-[200px] truncate" title={item.location_name}>
+                                                {item.location_name || `${item.lat}, ${item.lon}`}
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <StatusBadge status={item.status} />
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <div className="flex justify-center gap-3 text-xs font-bold">
+                                                    <span className="text-green-600 flex items-center gap-1">
+                                                        ▲ {item.upvotes}
+                                                    </span>
+                                                    <span className="text-red-600 flex items-center gap-1">
+                                                        ▼ {item.downvotes}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </>
+                        ) : (
+                            <>
+                                <thead className="bg-slate-50 sticky top-0 z-0 shadow-sm">
+                                    <tr>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">No</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Waktu Gempa</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Magnitude</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Kedalaman</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Wilayah</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Koordinat</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {dataDisasters.length === 0 ? (
+                                        <tr><td colSpan="5" className="p-8 text-center text-gray-400">Tidak ada data gempa tersimpan.</td></tr>
+                                    ) : dataDisasters.map((gempa, idx) => (
+                                        <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                                            <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
+                                                {idx + 1}
+                                            </td>
+                                            <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
+                                                {gempa.datetime} <br/>
+                                            </td>
+                                            <td className="p-4">
+                                                <span className={`px-2 py-1 rounded font-bold text-xs ${
+                                                    parseFloat(gempa.magnitude) >= 5.0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                                }`}>
+                                                    {gempa.magnitude} SR
+                                                </span>
+                                            </td>
+                                            <td className="p-4 text-sm text-gray-700 font-mono">
+                                                {gempa.depth}
+                                            </td>
+                                            <td className="p-4 text-sm text-gray-900 font-medium">
+                                                {gempa.location}
+                                            </td>
+                                            <td className="p-4 text-xs text-gray-500 font-mono">
+                                                {gempa.coordinates}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </>
+                        )}
+                    </table>
+                )}
+            </div>
+            
+            <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex justify-between items-center text-xs text-gray-400">
+                <span>Menampilkan {activeTab === 'reports' ? dataReports.length : dataDisasters.length} data terbaru</span>
+                <span className="italic">Data real-time dari Server & BMKG</span>
             </div>
         </div>
-    )
+    );
 }
