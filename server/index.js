@@ -364,6 +364,24 @@ app.get('/api/disaster_history', (req, res) => {
     });
 });
 
+app.get('/api/reports/user/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    const sql = `
+        SELECT * FROM reports 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC
+    `;
+
+    db.query(sql, [userId], (err, results) => {
+        if (err) {
+            console.error("Error fetching user reports:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+        res.json(results);
+    });
+});
+
 app.post('/api/auth/register', async (req, res) => {
     const { username, email, password } = req.body;
 

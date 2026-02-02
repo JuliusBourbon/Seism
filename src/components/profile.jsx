@@ -1,12 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import logo from "../assets/seism.png"
 
 export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess }) {
     const [isRegisterMode, setIsRegisterMode] = useState(false);
+    const [userReports, setUserReports] = useState([]);
+    const [isLoadingReports, setIsLoadingReports] = useState(false);
+
     const [formData, setFormData] = useState({
         username: "",
         email: "",
         password: ""
     });
+
+    useEffect(() => {
+        if (currentUser && currentUser.id) {
+            setIsLoadingReports(true);
+            fetch(`http://localhost:3000/api/reports/user/${currentUser.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    setUserReports(data);
+                    setIsLoadingReports(false);
+                })
+                .catch(err => {
+                    console.error("Gagal mengambil laporan user:", err);
+                    setIsLoadingReports(false);
+                });
+        }
+    }, [currentUser]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,7 +36,6 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
         e.preventDefault();
         const endpoint = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
         
-        // Jika register, kita butuh user_id guest saat ini untuk di-upgrade
         const payload = isRegisterMode 
             ? { ...formData, user_id: currentUser?.id } 
             : { username: formData.username, password: formData.password };
@@ -44,12 +63,26 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
         }
     };
 
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'valid': return 'bg-green-100 text-green-700 border-green-200';
+            case 'invalid': return 'bg-red-100 text-red-700 border-red-200';
+            case 'resolved': return 'bg-blue-100 text-blue-700 border-blue-200';
+            default: return 'bg-gray-100 text-gray-700 border-gray-200';
+        }
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+
     const isMember = currentUser?.role === 'verified';
 
-    return(
-        <div className="bg-white rounded-2xl w-[80%] h-[80vh] relative shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-gray-200" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+    return (
+        <div className="bg-white rounded-2xl w-[80%] h-[80vh] relative shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-gray-200">
             <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 grid grid-cols-2 items-center sticky top-0 z-20">
-                <h1 className="text-2xl font-bold text-slate-800 hidden md:block text-left">Profile</h1>
+                <h1 className="text-2xl font-bold text-slate-800 hidden md:block text-left">Profil Pengguna</h1>
                 <div className='flex justify-end'>
                     <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm">
                     ✕
@@ -57,82 +90,145 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
                 </div>
             </div>
 
-            <div className="w-full h-full py-5 px-20">
-                <div className="w-full h-full flex flex-col">
-                    {isMember ? (
-                        <div className="flex flex-col justify-between h-full w-full">
-                            <div>
-                                <div className="flex items-center gap-5">
-                                    <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-4xl text-white font-bold shadow-lg">
-                                        {currentUser?.username?.charAt(0).toUpperCase()}
-                                    </div>
-                                    <p className="text-2xl font-bold text-gray-800">{currentUser?.username}</p>
+            <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex flex-col h-full">
+                    
+                    {currentUser ? (
+                        <div className="flex flex-col h-full gap-6">
+                            <div className="flex flex-col items-center bg-linear-to-b from-blue-100 to-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm shrink-0">
+                                <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-4 shadow-lg ring-4 ring-blue-50">
+                                    {currentUser.username?.charAt(0).toUpperCase()}
                                 </div>
+                                <h2 className="text-xl font-bold text-gray-900">{currentUser.username}</h2>
+                                <p className="text-sm text-gray-500 mb-1">{currentUser.email}</p>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mt-2 
+                                    ${currentUser.role === 'suspended' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                                    {currentUser.role} Account
+                                </span>
+
                                 <div>
-                                    <p className="text-lg mb-2">Email: {currentUser?.email}</p>
-                                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase tracking-wider mb-8">Verified Member</span>
+                                    <button 
+                                        onClick={onLogout}
+                                        className="mt-6 px-6 cursor-pointer py-2 border border-red-400 text-red-600 rounded-full text-sm font-bold hover:bg-red-50 transition-all w-full"
+                                    >
+                                        Keluar Akun
+                                    </button>
                                 </div>
                             </div>
 
-                            <div className="w-full flex justify-end py-10">
-                                <button onClick={onLogout} className="px-4 py-2 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 border border-red-200">
-                                    Log Out
-                                </button>
+                            <div className="flex-1 flex flex-col min-h-0">
+                                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                    Riwayat Laporan ({userReports.length})
+                                </h3>
+                                
+                                <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar">
+                                    {isLoadingReports ? (
+                                        <p className="text-center text-gray-400 text-sm py-4">Memuat data...</p>
+                                    ) : userReports.length === 0 ? (
+                                        <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                                            <p className="text-gray-400 text-sm font-medium">Belum ada laporan yang dibuat.</p>
+                                        </div>
+                                    ) : (
+                                        userReports.map((report) => (
+                                            <div key={report.id} className="p-3 border border-gray-200 rounded-xl hover:shadow-md transition-shadow bg-white flex justify-between items-start gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-[10px] font-bold uppercase text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                                            {report.type}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-400">
+                                                            {formatDate(report.created_at)}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className="font-bold text-sm text-gray-800 truncate" title={report.title}>
+                                                        {report.title}
+                                                    </h4>
+                                                    <h1 className="text-sm">"{report.description}"</h1>
+                                                    <p className="text-xs text-gray-500 truncate">
+                                                        {report.location_name || "Lokasi Pin"}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1">
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getStatusColor(report.status)}`}>
+                                                        {report.status}
+                                                    </span>
+                                                    <div className="flex gap-2 text-sm font-bold text-gray-400">
+                                                        <span className="text-green-600 flex items-center gap-1">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg> 
+                                                            {report.upvotes}
+                                                        </span>
+                                                        <span className="text-red-600 flex items-center gap-1">
+                                                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                                            {report.downvotes}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
-                            
                         </div>
                     ) : (
-                        <div className="flex flex-col w-full">
-                            <div className="bg-gray-100 p-4 rounded-xl mb-6 text-center">
-                                <p className="text-xs text-gray-500 uppercase font-bold mb-1">Status Saat Ini</p>
-                                <p className="font-mono text-sm text-gray-700 truncate px-4">
-                                    {currentUser?.user_identifier || "Unknown Device"}
-                                </p>
-                                <span className="inline-block mt-2 px-2 py-0.5 bg-gray-200 text-gray-600 text-[10px] rounded">Guest Mode</span>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                                <input 
-                                    type="text" name="username" placeholder="Username" required
-                                    value={formData.username} 
-                                    onChange={handleChange}
-                                    className="p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-black"
-                                />
-                                
-                                {isRegisterMode && (
+                        <div className="flex flex-col items-center justify-center h-full py-4">
+                            <div className="flex flex-col items-center gap-5">
+                                <div>
+                                    <img src={logo} alt="" className="w-32 h-32"/>
+                                    <h1 className="text-5xl font-semibold text-blue-600">Seism</h1>
+                                </div>
+                                <div className="mb-6 text-center">
+                                    <h2 className="text-2xl font-bold text-gray-900">
+                                        {isRegisterMode ? "Buat Akun Baru" : "Selamat Datang"}
+                                    </h2>
+                                    <p className="text-gray-500 mt-1">
+                                        {isRegisterMode ? "" : "Login untuk mulai melapor"}
+                                    </p>
+                                </div>
+                                <form onSubmit={handleSubmit} className="w-full space-y-4">
                                     <input 
-                                        type="email" name="email" placeholder="Email Address" required
-                                        value={formData.email} 
+                                        type="text" name="username" placeholder="Username" required
+                                        value={formData.username} 
                                         onChange={handleChange}
-                                        className="p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-all text-black"
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-gray-800 placeholder:text-gray-400"
                                     />
-                                )}
+                                    
+                                    {isRegisterMode && (
+                                        <input 
+                                            type="email" name="email" placeholder="Email Address" required
+                                            value={formData.email} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-gray-800 placeholder:text-gray-400"
+                                        />
+                                    )}
 
-                                <input 
-                                    type="password" name="password" placeholder="Password" required
-                                    value={formData.password} 
-                                    onChange={handleChange}
-                                    className="p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-all text-black"
-                                />
+                                    <input 
+                                        type="password" name="password" placeholder="Password" required
+                                        value={formData.password} 
+                                        onChange={handleChange}
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-gray-800 placeholder:text-gray-400"
+                                    />
 
-                                <button type="submit" className="mt-2 bg-[#008CFF] text-white font-bold py-3 rounded-xl hover:bg-blue-600 shadow-md">
-                                    {isRegisterMode ? "Upgrade Akun" : "Login"}
-                                </button>
-                            </form>
-
-                            <div className="mt-4 text-center text-sm">
-                                <button 
-                                    onClick={() => setIsRegisterMode(!isRegisterMode)}
-                                    className="text-blue-500 hover:underline font-medium"
-                                >
-                                    {isRegisterMode ? "Sudah punya akun? Login" : "Belum daftar? Buat Akun"}
-                                </button>
+                                    <button type="submit" className="w-full cursor-pointer mt-4 bg-linear-to-r from-[#008CFF] to-blue-600 text-white font-bold py-3 rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all active:scale-95">
+                                        {isRegisterMode ? "Daftar Sekarang" : "Masuk"}
+                                    </button>
+                                </form>
+                                <div className="mt-6 text-center">
+                                    <p className="text-sm text-gray-500">
+                                        {isRegisterMode ? "Sudah punya akun?" : "Belum punya akun?"}
+                                    </p>
+                                    <button 
+                                        onClick={() => setIsRegisterMode(!isRegisterMode)}
+                                        className="text-blue-600 cursor-pointer hover:text-blue-700 font-bold text-sm mt-1 hover:underline"
+                                    >
+                                        {isRegisterMode ? "Login di sini" : "Daftar akun baru"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
-
                 </div>
             </div>
         </div>
-    )
+    );
 }
