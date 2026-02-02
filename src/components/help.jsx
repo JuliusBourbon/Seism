@@ -29,7 +29,7 @@ const ICONS = {
 };
 
 export default function Help({ onClose }) {
-  const [activeTab, setActiveTab] = useState('rules');
+  const [activeTab, setActiveTab] = useState('emergency');
 
   const emergencyContacts = [
     { name: 'Panggilan Darurat', desc: 'Semua Keadaan Darurat', number: '112', color: 'border-red-200 text-red-700 bg-red-50' },
@@ -104,117 +104,48 @@ export default function Help({ onClose }) {
   ];
 
   return (
-    <div className="bg-white rounded-2xl w-full max-w-7xl h-[80vh] md:h-auto md:max-h-[80vh] relative shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-gray-200">
-      
-      <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Pusat Bantuan</h1>
-          <p className="text-sm text-slate-500">Panduan keselamatan & Aturan Aplikasi</p>
+    <div className="bg-white rounded-2xl w-[80%] h-[80vh] relative shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-gray-200">
+        <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 grid grid-cols-3 items-center sticky top-0 z-20">
+          <h1 className="text-2xl font-bold text-slate-800 hidden md:block text-left">Pusat Bantuan</h1>
+          <div className="flex justify-center">
+            <div className="flex bg-white rounded-lg p-1 border border-gray-300 shadow-sm">
+              {[
+                { id: 'emergency', label: 'Kontak Darurat', icon: ICONS.phone },
+                { id: 'guide', label: 'Panduan Penyelematan', icon: ICONS.shield },
+                { id: 'rules', label: 'Aturan & Sanksi', icon: ICONS.gavel },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 py-1.5 flex cursor-pointer gap-2 rounded-md text-sm font-bold transition-all ${
+                    activeTab === tab.id 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className='flex justify-end'>
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm">
+              ✕
+            </button>
+          </div>
         </div>
-        <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-red-100 hover:text-red-600 transition-all">
-          ✕
-        </button>
-      </div>
 
-      <div className="flex px-6 gap-2 border-b border-gray-100 bg-slate-50/50 overflow-x-auto no-scrollbar">
-        {[
-          { id: 'rules', label: 'Aturan & Sanksi', icon: ICONS.gavel },
-          { id: 'emergency', label: 'Kontak Darurat', icon: ICONS.phone },
-          { id: 'guide', label: 'Mitigasi', icon: ICONS.shield },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all whitespace-nowrap border-b-2 ${
-              activeTab === tab.id 
-                ? 'border-blue-600 text-blue-600 bg-blue-50/50' 
-                : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
-      </div>
+        
 
       <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-white">
         
-        {activeTab === 'rules' && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            
-            <section className="bg-blue-50 rounded-xl p-5 border border-blue-100">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                    <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-                    Wajib Login & Verifikasi
-                </h3>
-                <p className="text-blue-800 leading-relaxed">
-                    Demi menjaga akurasi data, semua pengguna wajib mendaftar dan login untuk membuat laporan atau melakukan voting. Ini memastikan setiap informasi memiliki penanggung jawab yang jelas.
-                </p>
-            </section>
-
-            <section className=''>
-                <h3 className="text-lg px-5 font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                    <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-                    Sistem Validasi Berdasarkan Vote
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border border-green-200 bg-green-50 p-4 rounded-xl">
-                        <div className="font-semibold text-green-700 mb-1 flex text-lg items-center gap-2">Laporan Valid</div>
-                        <p className="text-xs text-green-800 mb-2">Laporan dianggap valid jika:</p>
-                        <h1 className="block bg-white/50 p-2 rounded text-xs text-green-900 border border-green-200">
-                            (UpVote + DownVote &gt; 10) DAN (UpVote &ge; 2x DownVote)
-                        </h1>
-                    </div>
-                    <div className="border border-red-200 bg-red-50 p-4 rounded-xl">
-                        <div className="font-semibold text-red-700 mb-1 flex items-center gap-2 text-lg">Laporan Invalid</div>
-                        <p className="text-xs text-red-800 mb-2">Laporan dianggap palsu/hoax jika:</p>
-                        <h1 className="block bg-white/50 p-2 rounded text-xs text-red-900 border border-red-200">
-                            (UpVote - DownVote &le; -10)
-                        </h1>
-                    </div>
-                </div>
-            </section>
-
-            <section className="border-t border-gray-100 pt-6">
-                <h3 className="text-lg px-5 font-semibold text-red-600 mb-4 flex items-center gap-2">
-                    {ICONS.alert} Kebijakan Sanksi (Banned)
-                </h3>
-                <p className="text-sm text-slate-600 mb-4">
-                    Jika laporan Anda ditandai sebagai <strong>INVALID</strong>, poin pelanggaran Anda akan bertambah. Akun akan <strong>dibekukan (Suspend)</strong> secara otomatis berdasarkan jumlah pelanggaran:
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <div className="text-2xl font-black text-slate-400 mb-1">3x</div>
-                        <div className="text-xs font-semibold uppercase text-slate-500">Pelanggaran</div>
-                        <div className="mt-2 py-1 px-3 bg-slate-200 text-slate-700 rounded-full text-xs font-semibold inline-block">
-                            Suspend 1 Minggu
-                        </div>
-                    </div>
-                    <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
-                        <div className="text-2xl font-black text-orange-400 mb-1">5x</div>
-                        <div className="text-xs font-semibold uppercase text-orange-500">Pelanggaran</div>
-                        <div className="mt-2 py-1 px-3 bg-orange-200 text-orange-800 rounded-full text-xs font-semibold inline-block">
-                            Suspend 1 Bulan
-                        </div>
-                    </div>
-                    <div className="p-4 bg-red-50 rounded-xl border border-red-200">
-                        <div className="text-2xl font-black text-red-500 mb-1">7x</div>
-                        <div className="text-xs font-semibold uppercase text-red-600">Pelanggaran</div>
-                        <div className="mt-2 py-1 px-3 bg-red-200 text-red-800 rounded-full text-xs font-semibold inline-block">
-                            Suspend 1 Tahun
-                        </div>
-                    </div>
-                </div>
-                <p className="mt-4 text-xs text-slate-400 italic text-center">
-                    *Akun yang ter-suspend bisa melihat waktu hukuman yang tersisa dengan cara melakukan login.
-                </p>
-            </section>
-          </div>
-        )}
+        
 
         {activeTab === 'emergency' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <p className="text-xl text-center font-bold mb-4">
+                Nomor Telepon Darurat
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {emergencyContacts.map((contact, idx) => (
                 <a 
@@ -226,23 +157,20 @@ export default function Help({ onClose }) {
                     {ICONS.phone}
                   </div>
                   <div className="ml-4">
-                    <p className="text-[10px] uppercase tracking-wider font-semibold opacity-70 mb-0.5">{contact.desc}</p>
-                    <p className="text-lg font-semibold leading-none">{contact.name}</p>
-                    <p className="text-2xl font-black mt-1 tracking-tight">{contact.number}</p>
+                    <p className="text-sm uppercase text-black tracking-wider font-semibold opacity-70 mb-0.5">{contact.desc}</p>
+                    <p className="text-lg texbla font-semibold leading-none">{contact.name}</p>
+                    <p className="text-xl font-bold mt-1 tracking-tight">{contact.number}</p>
                   </div>
                 </a>
               ))}
             </div>
-            <p className="mt-6 text-center text-xs text-slate-400 italic">
-              *Tekan tombol di atas untuk melakukan panggilan langsung via seluler.
-            </p>
           </div>
         )}
 
         {activeTab === 'guide' && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <p className="text-sm text-slate-500 mb-4">
-                Panduan langkah demi langkah menghadapi berbagai jenis bencana yang dapat dilaporkan di aplikasi ini.
+            <p className="text-xl text-center font-bold mb-4">
+                Panduan langkah-langkah penyelamatan awal Bencana
             </p>
             
             {mitigationGuides.map((guide) => (
@@ -270,6 +198,84 @@ export default function Help({ onClose }) {
                     </div>
                 </details>
             ))}
+          </div>
+        )}
+
+        {activeTab === 'rules' && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <p className="text-xl text-center font-bold mb-4">
+                Kebijakan Sistem
+            </p>
+            
+            <section className="bg-blue-50 rounded-xl p-5 border border-blue-100">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                    <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                    Wajib Login & Verifikasi
+                </h3>
+                <p className="text-blue-800 leading-relaxed">
+                    Demi menjaga akurasi data, semua pengguna wajib mendaftar dan login untuk membuat laporan atau melakukan voting. Ini memastikan setiap informasi memiliki penanggung jawab yang jelas.
+                </p>
+            </section>
+
+            <section className=''>
+                <h3 className="text-lg px-5 font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                    Sistem Validasi Berdasarkan Vote
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border border-green-200 bg-green-50 p-4 rounded-xl">
+                        <div className="font-semibold text-green-700 mb-1 flex text-lg items-center gap-2">Laporan Valid</div>
+                        <p className="text-green-800 mb-2">Laporan dianggap valid jika:</p>
+                        <h1 className="block bg-white/50 p-2 rounded text-green-900 border border-green-200">
+                            (UpVote + DownVote &gt; 10) DAN (UpVote &ge; 2x DownVote)
+                        </h1>
+                    </div>
+                    <div className="border border-red-200 bg-red-50 p-4 rounded-xl">
+                        <div className="font-semibold text-red-700 mb-1 flex items-center gap-2 text-lg">Laporan Invalid</div>
+                        <p className="text-red-800 mb-2">Laporan dianggap Invalid jika:</p>
+                        <h1 className="block bg-white/50 p-2 rounded text-red-900 border border-red-200">
+                            (UpVote - DownVote &le; -10)
+                        </h1>
+                    </div>
+                </div>
+            </section>
+
+            <section className="px-5">
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
+                    Hukuman
+                </h3>
+                <p className="text-slate-600 mb-4">
+                    Jika laporan Anda ditandai sebagai <strong>INVALID</strong>, poin pelanggaran Anda akan bertambah. Akun akan <strong>dibekukan (Suspend)</strong> secara otomatis berdasarkan jumlah pelanggaran:
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <div className="text-2xl font-black text-slate-400 mb-1">3x</div>
+                        <div className="text-xs font-semibold uppercase text-slate-500">Pelanggaran</div>
+                        <div className="mt-2 py-1 px-3 bg-slate-200 text-slate-700 rounded-full text-xs font-semibold inline-block">
+                            Suspend 1 Minggu
+                        </div>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+                        <div className="text-2xl font-black text-orange-400 mb-1">5x</div>
+                        <div className="text-xs font-semibold uppercase text-orange-500">Pelanggaran</div>
+                        <div className="mt-2 py-1 px-3 bg-orange-200 text-orange-800 rounded-full text-xs font-semibold inline-block">
+                            Suspend 1 Bulan
+                        </div>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                        <div className="text-2xl font-black text-red-500 mb-1">7x</div>
+                        <div className="text-xs font-semibold uppercase text-red-600">Pelanggaran</div>
+                        <div className="mt-2 py-1 px-3 bg-red-200 text-red-800 rounded-full text-xs font-semibold inline-block">
+                            Suspend 1 Tahun
+                        </div>
+                    </div>
+                </div>
+                <p className="mt-4 text-slate-600 italic text-center">
+                    *Akun yang ter-suspend bisa melihat waktu hukuman yang tersisa dengan cara melakukan login.
+                </p>
+            </section>
           </div>
         )}
 

@@ -53,7 +53,7 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
             onClick={(e) => e.stopPropagation()}
         >
             <div className="absolute top-4 right-4 z-10">
-                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold">✕</button>
+                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm">✕</button>
             </div>
 
             <div className="w-full h-full pt-8">

@@ -102,7 +102,7 @@ export default function Table({ onClose }) {
                 <div className="flex bg-white rounded-lg p-1 border border-gray-300 shadow-sm">
                     <button
                         onClick={() => setActiveTab('reports')}
-                        className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+                        className={`px-4 py-1.5 cursor-pointer rounded-md text-sm font-bold transition-all ${
                             activeTab === 'reports' 
                             ? 'bg-blue-600 text-white shadow-md' 
                             : 'text-gray-500 hover:bg-gray-100'
@@ -112,9 +112,9 @@ export default function Table({ onClose }) {
                     </button>
                     <button
                         onClick={() => setActiveTab('disasters')}
-                        className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+                        className={`px-4 py-1.5 cursor-pointer rounded-md text-sm font-bold transition-all ${
                             activeTab === 'disasters' 
-                            ? 'bg-orange-600 text-white shadow-md' 
+                            ? 'bg-blue-600 text-white shadow-md' 
                             : 'text-gray-500 hover:bg-gray-100'
                         }`}
                     >
@@ -142,7 +142,7 @@ export default function Table({ onClose }) {
 
                     <button 
                         onClick={onClose} 
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all font-bold shadow-sm"
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm"
                     >
                         ✕
                     </button>

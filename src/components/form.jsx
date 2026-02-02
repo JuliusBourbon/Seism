@@ -106,7 +106,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
         <div className="bg-white rounded-2xl w-[65%] h-[85%] relative pointer-events-auto shadow-2xl mt-15">
             <div className="absolute top-0 z-1 w-full">
                 <div className="flex justify-end mr-7 mt-5">
-                    <button onClick={onClose} className="px-2 rounded-md text-center cursor-pointer hover:font-bold hover:shadow-2xl">✕</button>
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm">✕</button>
                 </div>
             </div>
             <div className="w-full h-full flex flex-col gap-10 items-center">
