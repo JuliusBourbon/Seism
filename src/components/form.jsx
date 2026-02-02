@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import LocationPicker from "./locationPicker";
-import { getDeviceId } from "../Data/deviceId";
+
 
 export default function Form({onClose, currentUser, onSuccess}) {
     const [userLocation, setUserLocation] = useState({ lat: null, lon: null });
@@ -34,8 +34,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
         } else {
             setGpsError("Browser Anda tidak mendukung Geolocation.");
         }
-        
-        if (currentUser?.role == 'verified') {
+        if (currentUser) {
             setFormData(prev => ({
                 ...prev,
                 user_name: currentUser.username
@@ -59,18 +58,16 @@ export default function Form({onClose, currentUser, onSuccess}) {
             return;
         }
 
-        if (!currentUser) {
-            alert("Loading User data...");
+        if (!currentUser || !currentUser.id) {
+            alert("Anda wajib login untuk mengirim laporan!");
             return;
         }
 
         const data = new FormData();
-        if (currentUser?.id) {
-            data.append('user_id', currentUser.id);
-        }
-    
-        const deviceId = currentUser?.user_identifier || getDeviceId(); 
-        data.append('user_identifier', deviceId);
+        
+        data.append('user_id', currentUser.id);
+        
+
         data.append('user_name', formData.user_name);
         data.append('title', formData.title);
         data.append('type', formData.type);
@@ -105,6 +102,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
             alert("Terjadi kesalahan koneksi.");
         }
     };
+
     return(
         <div className="bg-white rounded-2xl w-[95%] h-[85%] relative pointer-events-auto shadow-2xl mt-15">
             <div className="absolute top-0 z-1 w-full">
@@ -126,22 +124,14 @@ export default function Form({onClose, currentUser, onSuccess}) {
                         <div className="flex gap-3 items-center justify-around mx-50">
                             <div className="mb-1">
                                 <label className="block font-bold mb-2">
-                                    {currentUser?.role == 'verified' ? "Username (Terdaftar)" : "Username (Boleh Anonym)"}
+                                    Username (Pelapor)
                                 </label>
                                 <input 
                                     type="text" 
                                     placeholder="Username"
                                     value={formData.user_name}
-                                    
-                                    readOnly={currentUser?.role == 'verified'}
-                                    
-                                    className={`p-1 w-full mb-2 rounded-lg border border-black/30 transition-colors
-                                        ${currentUser?.role == 'verified' 
-                                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed font-semibold' // Style terkunci
-                                            : 'bg-white'
-                                        }`}
-                                    
-                                    onChange={(e) => setFormData({...formData, user_name: e.target.value})}
+                                    readOnly={true}
+                                    className="p-1 w-full mb-2 rounded-lg border border-black/30 transition-colors bg-gray-100 text-gray-500 cursor-not-allowed font-semibold"
                                 />
                             </div>
                             <div className="mb-1">
@@ -203,7 +193,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                             </div>
 
                             <div className="flex items-center">
-                                <button type="submit" className="bg-linear-to-b from-[#0028ac] to-[#008CFF] cursor-pointer bg-red-600 text-white px-10 py-2 rounded-lg text-lg font-semibold">
+                                <button type="submit" className="bg-linear-to-b from-[#0028ac] to-[#008CFF] cursor-pointer bg-red-600 text-white px-10 py-2 rounded-lg text-lg font-semibold hover:shadow-lg transition-all">
                                     Submit
                                 </button>
                             </div>

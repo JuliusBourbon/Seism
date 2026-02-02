@@ -32,32 +32,13 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
         setActiveTab('home');
     };
 
-
     const markerData = [
-        { 
-            id: 'gempa', 
-            label: 'Gempa', 
-        }, 
-        { 
-            id: 'banjir', 
-            label: 'Banjir', 
-        }, 
-        { 
-            id: 'kebakaran', 
-            label: 'Kebakaran', 
-        }, 
-        { 
-            id: 'longsor', 
-            label: 'Longsor', 
-        }, 
-        { 
-            id: 'akses tertutup', 
-            label: 'Akses Tertutup', 
-        }, 
-        { 
-            id: 'lainnya', 
-            label: 'Lainnya', 
-        }, 
+        { id: 'gempa', label: 'Gempa' }, 
+        { id: 'banjir', label: 'Banjir' }, 
+        { id: 'kebakaran', label: 'Kebakaran' }, 
+        { id: 'longsor', label: 'Longsor' }, 
+        { id: 'akses tertutup', label: 'Akses Tertutup' }, 
+        { id: 'lainnya', label: 'Lainnya' }, 
     ];
 
     const [filterState, setFilterState] = useState({
@@ -116,10 +97,8 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
         fetchReports();
     }, []);
 
-    if (loading) 
-        return <p>Loading...</p>;
-    if (error) 
-        return <p>Error: {error}</p>;
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Error: {error}</p>;
     
     return (
         <div className="relative h-screen w-full border-gray-200 rounded-xl shadow-lg overflow-hidden">
@@ -154,7 +133,6 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                 {reports
                     .filter((item) => {
                         const typeKey = item.type ? item.type.toLowerCase() : 'lainnya';
-                        
                         return filterState[typeKey] === true;
                     })
                     .map((item) => (

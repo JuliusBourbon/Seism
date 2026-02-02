@@ -53,113 +53,88 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.post('/api/reports', upload.single('image'), (req, res) => {
     const { 
         user_id, user_name, title, type, description, 
-        lat, lon, location_name, user_device_lat, user_device_lon,
-        user_identifier 
+        lat, lon, location_name, user_device_lat, user_device_lon 
     } = req.body;
+
+    if (!user_id || user_id === 'null' || user_id === 'undefined') {
+        return res.status(401).json({ error: "Anda wajib login untuk membuat laporan." });
+    }
 
     if (!lat || !lon || !user_device_lat || !user_device_lon) {
         return res.status(400).json({ error: "Data lokasi tidak lengkap." });
     }
+
     const distance = calculateDistance(
         parseFloat(user_device_lat), parseFloat(user_device_lon),
         parseFloat(lat), parseFloat(lon)
     );
+
     if (distance > 5.0) {
         return res.status(403).json({ error: `Lokasi terlalu jauh (${distance.toFixed(1)} km). Maksimal 5 km.` });
     }
 
-    const processRateLimit = (limitMinutes, isVerifiedUser) => {
-        let checkSql = "";
-        let checkParams = [];
-        
-        const finalIdentifier = user_identifier || `guest-${Date.now()}`;
+    const limitMinutes = 2; 
 
-        if (isVerifiedUser) {
-            checkSql = "SELECT created_at FROM reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 1";
-            checkParams = [user_id];
-        } else {
-            checkSql = "SELECT created_at FROM reports WHERE user_identifier = ? ORDER BY created_at DESC LIMIT 1";
-            checkParams = [finalIdentifier];
+    const checkSql = "SELECT created_at FROM reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 1";
+    
+    db.query(checkSql, [user_id], (err, results) => {
+        if (err) {
+            console.error("History Check Error:", err);
+            return res.status(500).json({ error: "Gagal mengecek history" });
         }
 
-        db.query(checkSql, checkParams, (err, results) => {
-            if (err) {
-                console.error("History Check Error:", err);
-                return res.status(500).json({ error: "Gagal mengecek history" });
-            }
+        if (results.length > 0) {
+            const lastReportTime = new Date(results[0].created_at);
+            const now = new Date();
+            const diffMs = now - lastReportTime;
+            const diffMinutes = Math.floor(diffMs / 60000);
 
-            if (results.length > 0) {
-                const lastReportTime = new Date(results[0].created_at);
-                const now = new Date();
-                const diffMs = now - lastReportTime;
-                const diffMinutes = Math.floor(diffMs / 60000);
-
-                if (diffMinutes < limitMinutes) {
-                    const sisaWaktu = limitMinutes - diffMinutes;
-                    return res.status(429).json({ 
-                        error: `Terlalu cepat! Sebagai ${isVerifiedUser ? 'Verified User' : 'Guest'}, kamu harus menunggu ${sisaWaktu} menit lagi.` 
-                    });
-                }
-            }
-
-            let finalImageUrl = null;
-            if (req.file) {
-                finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-            }
-
-            const insertSql = `
-                INSERT INTO reports (user_id, user_identifier, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'pending', NOW(), NOW())
-            `;
-            
-            const values = [
-                isVerifiedUser ? user_id : null, 
-                finalIdentifier,
-                user_name,
-                title,
-                type,
-                description,
-                lat,
-                lon,
-                location_name,
-                finalImageUrl
-            ];
-
-            db.query(insertSql, values, (err, result) => {
-                if (err) {
-                    console.error("Insert Error:", err);
-                    return res.status(500).json({ error: "Gagal menyimpan laporan." });
-                }
-
-                res.status(201).json({
-                    message: "Laporan berhasil dikirim!",
-                    data: {
-                        id: result.insertId,
-                        status: 'pending',
-                        type: type
-                    }
+            if (diffMinutes < limitMinutes) {
+                const sisaWaktu = limitMinutes - diffMinutes;
+                return res.status(429).json({ 
+                    error: `Terlalu cepat! Kamu harus menunggu ${sisaWaktu} menit lagi sebelum melapor kembali.` 
                 });
+            }
+        }
+
+        let finalImageUrl = null;
+        if (req.file) {
+            finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        }
+
+        const insertSql = `
+            INSERT INTO reports (user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'pending', NOW(), NOW())
+        `;
+        
+        const values = [
+            user_id, 
+            user_name,
+            title,
+            type,
+            description,
+            lat,
+            lon,
+            location_name,
+            finalImageUrl
+        ];
+
+        db.query(insertSql, values, (err, result) => {
+            if (err) {
+                console.error("Insert Error:", err);
+                return res.status(500).json({ error: "Gagal menyimpan laporan." });
+            }
+
+            res.status(201).json({
+                message: "Laporan berhasil dikirim!",
+                data: {
+                    id: result.insertId,
+                    status: 'pending',
+                    type: type
+                }
             });
         });
-    };
-
-    if (user_id && user_id !== 'null' && user_id !== 'undefined') {
-        const userSql = "SELECT role FROM users WHERE id = ?";
-        db.query(userSql, [user_id], (err, userResults) => {
-            if (err) {
-                console.error("User Check Error:", err);
-                return processRateLimit(20, false); 
-            }
-
-            if (userResults.length > 0 && userResults[0].role === 'verified') {
-                processRateLimit(2, true);
-            } else {
-                processRateLimit(20, false);
-            }
-        });
-    } else {
-        processRateLimit(20, false);
-    }
+    });
 });
 
 app.get('/api/reports/:id/vote-status', (req, res) => {
@@ -184,7 +159,7 @@ app.post('/api/reports/:id/vote', (req, res) => {
     const reportId = req.params.id;
     const { user_id, type } = req.body;
 
-    if (!user_id) return res.status(401).json({ error: "User wajib login" });
+    if (!user_id) return res.status(401).json({ error: "User wajib login untuk melakukan voting." });
 
     db.query("SELECT status FROM reports WHERE id = ?", [reportId], (err, results) => {
         if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
@@ -196,6 +171,7 @@ app.post('/api/reports/:id/vote', (req, res) => {
                 error: `Voting ditutup. Status laporan sudah final: ${currentStatus}.` 
             });
         }
+        
         const checkSql = "SELECT * FROM votes_detail WHERE report_id = ? AND user_id = ?";
         db.query(checkSql, [reportId, user_id], (err, results) => {
             if (err) return res.status(500).json({ error: "Database error" });
@@ -237,7 +213,6 @@ app.post('/api/reports/:id/vote', (req, res) => {
                 }
             }
     
-            
             db.query(detailQuery, detailParams, (err) => {
                 if (err) return res.status(500).json({ error: "Gagal update history vote" });
     
@@ -287,46 +262,6 @@ app.post('/api/reports/:id/vote', (req, res) => {
     });
 });
 
-app.post('/api/auth/guest', (req, res) => {
-    const { device_id } = req.body;
-
-    if (!device_id) {
-        return res.status(400).json({error: "Device Id not detected"})
-    }
-
-    const checkSql = 'Select * from users where user_identifier = ?';
-
-    db.query(checkSql, [device_id], (err, results) => {
-        if (err) return res.status(500).json({error: err.message});
-
-        if (results.length > 0) {
-            return res.json({
-                message: "Device Id found",
-                user: results[0]
-            });
-        } else {
-            const insertSql = `insert into users (user_identifier, username, role)
-                values (?, 'Anonymous', 'guest')`;
-            
-            db.query(insertSql, [device_id], (err, result) => {
-                if (err) return res.status(500).json({error: err.message});
-
-                const newUser = {
-                    id: result.insertId,
-                    user_identifier: device_id,
-                    username: 'Anonymous',
-                    role: 'guest'
-                };
-
-                return res.json({
-                    message: "Device Id not found, Creating new User",
-                    user: newUser
-                })
-            })
-        }
-    })
-})
-
 app.get('/api/reports', (req, res) => {
     const sql = `
         SELECT r.*, u.role AS reporter_role 
@@ -354,20 +289,18 @@ app.get('/api/reports', (req, res) => {
 });
 
 app.post('/api/auth/register', async (req, res) => {
-    const { user_id, username, email, password } = req.body;
+    const { username, email, password } = req.body;
 
-    if (!user_id || !username || !email || !password) {
+    if (!username || !email || !password) {
         return res.status(400).json({ error: "Semua kolom wajib diisi!" });
     }
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const sql = `UPDATE users 
-                     SET username = ?, email = ?, password = ?, role = 'verified' 
-                     WHERE id = ?`;
+        const sql = `INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'verified')`;
 
-        db.query(sql, [username, email, hashedPassword, user_id], (err, result) => {
+        db.query(sql, [username, email, hashedPassword], (err, result) => {
             if (err) {
                 if (err.code === 'ER_DUP_ENTRY') {
                     return res.status(409).json({ error: "Username atau Email sudah terdaftar!" });
@@ -375,13 +308,9 @@ app.post('/api/auth/register', async (req, res) => {
                 return res.status(500).json({ error: err.message });
             }
 
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ error: "User Guest tidak ditemukan." });
-            }
-
             res.json({ 
-                message: "Registrasi berhasil! Akun Anda telah diupgrade.", 
-                user: { id: user_id, username, email, role: 'verified' } 
+                message: "Registrasi berhasil! Silakan login.", 
+                user: { id: result.insertId, username, email, role: 'verified' } 
             });
         });
 
@@ -402,17 +331,11 @@ app.post('/api/auth/login', (req, res) => {
     db.query(sql, [username], async (err, results) => {
         if (err) return res.status(500).json({ error: "Database error" });
 
-        // Jika user tidak ditemukan
         if (results.length === 0) {
             return res.status(401).json({ error: "Username tidak ditemukan" });
         }
 
         const user = results[0];
-
-        if (!user.password) {
-            return res.status(401).json({ error: "Akun ini masih status Guest. Silakan Register dulu." });
-        }
-
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
@@ -425,8 +348,7 @@ app.post('/api/auth/login', (req, res) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                role: user.role,
-                user_identifier: user.user_identifier
+                role: user.role
             }
         });
     });

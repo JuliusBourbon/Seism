@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 
 export default function ReportPopup({ report, currentUser }) {
     const isVoteLocked = report.status !== 'pending';
-    const isOwner = currentUser && report.user_id && (currentUser.id == report.user_id)
+    const isOwner = currentUser && report.user_id && (String(currentUser.id) === String(report.user_id));
+
     const handleDelete = async () => {
+        if (!currentUser) return; 
         if (!window.confirm("Yakin ingin menghapus laporan ini?")) return;
 
         try {
@@ -25,7 +27,9 @@ export default function ReportPopup({ report, currentUser }) {
             console.error(error);
         }
     };
+
     const handleResolve = async () => {
+        if (!currentUser) return;
         if (!window.confirm("Tandai laporan ini sebagai SELESAI (Resolved)?")) return;
 
         try {
@@ -64,18 +68,19 @@ export default function ReportPopup({ report, currentUser }) {
                     setUserVote(data.voted);
                 })
                 .catch(err => console.error(err));
+        } else {
+            setUserVote(null);
         }
     }, [report.id, currentUser]);
 
     const handleVote = async (type) => {
         if (!currentUser) {
-            alert("Silakan login untuk memberikan vote!");
+            alert("Silakan login untuk memberikan vote! User tamu hanya dapat melihat data.");
             return;
         }
         if (isLoading) return;
 
         setIsLoading(true);
-
 
         try {
             const response = await fetch(`http://localhost:3000/api/reports/${report.id}/vote`, {
@@ -101,7 +106,7 @@ export default function ReportPopup({ report, currentUser }) {
                     setUserVote(type); 
                 }
             } else {
-                alert("Gagal voting");
+                alert(data.error || "Gagal voting");
             }
         } catch (error) {
             console.error("Vote Error:", error);
@@ -112,15 +117,9 @@ export default function ReportPopup({ report, currentUser }) {
 
     const getRealtimeStatus = () => {
         const { up, down } = votes;
-        if (report.status === 'resolved') {
-            return 'resolved';
-        }
-        if ((up - down) <= -10) {
-            return 'invalid';
-        }
-        if ((up + down) > 10 && up >= (2 * down)) {
-            return 'valid';
-        }
+        if (report.status === 'resolved') return 'resolved';
+        if ((up - down) <= -10) return 'invalid';
+        if ((up + down) > 10 && up >= (2 * down)) return 'valid';
         return 'pending';
     };
 
@@ -135,7 +134,7 @@ export default function ReportPopup({ report, currentUser }) {
         }
     };
 
-    const date = new Date(report.created_at)
+    const date = new Date(report.created_at);
     const formatted = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}, 
         ${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
 
@@ -152,7 +151,7 @@ export default function ReportPopup({ report, currentUser }) {
                         {report.user_name || "Anonim"}
                     </span>
                     <span className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wide ${report.reporter_role === 'verified' ? 'text-blue-600' : 'text-gray-500'}`}>
-                        {report.reporter_role || 'Guest'}
+                        {report.reporter_role || 'User'}
                     </span>
                 </div>
             </div>

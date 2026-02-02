@@ -3,8 +3,9 @@ import { useState } from 'react';
 import LoginPopup from './loginPopup';
 import { useNavigate } from 'react-router-dom';
 
-export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
-    const isVerifiedUser = currentUser?.role === 'verified';
+export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
+    const isLoggedIn = !!currentUser;
+    
     const navigate = useNavigate();
     const [showAuth, setShowAuth] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -24,7 +25,11 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
 
             if (response.ok) {
                 alert(`Selamat datang kembali, ${data.user.username}!`);
-                setCurrentUser(data.user);
+                
+                if (onLoginSuccess) {
+                    onLoginSuccess(data.user); 
+                }
+                
                 setShowAuth(false); 
                 navigate('/map')
             } else {
@@ -37,17 +42,11 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
     };
 
     const handleRegister = async (formData) => {
-        if (!currentUser) {
-            alert("Sedang memuat data Guest... Coba sesaat lagi.");
-            return;
-        }
-
         try {
             const response = await fetch('http://localhost:3000/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    user_id: currentUser.id,
                     username: formData.username,
                     email: formData.email,
                     password: formData.password
@@ -58,7 +57,11 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
 
             if (response.ok) {
                 alert("Registrasi Berhasil! Selamat datang Member baru.");
-                setCurrentUser(prev => ({ ...prev, ...data.user })); 
+                
+                if (onLoginSuccess) {
+                    onLoginSuccess(data.user);
+                }
+                
                 setShowAuth(false); 
             } else {
                 alert(data.error || "Registrasi Gagal");
@@ -102,7 +105,7 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
                     <div className="flex items-center gap-12">
                         <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection('home')}>
                             <div className="h-10 w-10 text-[#00165D] flex items-center justify-center font-bold rounded-lg shadow-lg">
-                                <img src={logo} className='scale-[120%]' />
+                                <img src={logo} className='scale-[120%]' alt="Logo" />
                             </div>
                             <span className="font-bold text-2xl tracking-tight">Seism</span>
                         </div>
@@ -115,7 +118,7 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
                         </div>
                     </div>
                     <div className="relative">
-                        {isVerifiedUser ? (
+                        {isLoggedIn ? (
                             <div className="relative">
                                 <button 
                                     onClick={() => setShowUserMenu(!showUserMenu)}
@@ -132,9 +135,9 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
                                 
                                 {showUserMenu && (
                                     <div className="absolute right-0 mt-2 w-35 bg-white rounded-md shadow-xl py-2 text-gray-800 animate-fade-in z-50">
-                                        <div className='flex gap-2 w-full justify-center hover:text-red-600 cursor-pointer'>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-logout-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" /><path d="M15 12h-12l3 -3" /><path d="M6 15l-3 -3" /></svg>
-                                            <button onClick={handleLogoutClick} className="...">Logout</button>
+                                        <div className='flex gap-2 w-full justify-center hover:text-red-600 cursor-pointer' onClick={handleLogoutClick}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" /><path d="M15 12h-12l3 -3" /><path d="M6 15l-3 -3" /></svg>
+                                            <button className="...">Logout</button>
                                         </div>
                                     </div>
                                 )}
@@ -159,7 +162,7 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
                             <span className="text-blue-200">Saving Lives</span>
                         </h1>
                         <p className="text-lg md:text-xl text-gray-100 leading-relaxed max-w-lg">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+                            Bergabunglah bersama komunitas pelapor bencana untuk Indonesia yang lebih tanggap dan aman.
                         </p>
                         <div className="flex gap-4">
                             <a href="/map" className="px-8 py-4 bg-white text-[#00489b] font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
@@ -182,7 +185,7 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-bold mb-4">About Seism</h2>
                         <p className="max-w-2xl mx-auto text-blue-100">
-                            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                            Platform pelaporan dan pemantauan bencana berbasis komunitas.
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -193,7 +196,7 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
                                 </div>
                                 <h3 className="text-xl font-bold mb-3">Feature {item}</h3>
                                 <p className="text-gray-300">
-                                    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                                    Informasi terkini dan akurat dari komunitas sekitar Anda.
                                 </p>
                             </div>
                         ))}
@@ -233,7 +236,7 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
                                 >
                                     <div className="px-6 pb-6 text-gray-200 text-sm">
                                         <p>
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+                                            Jawaban untuk pertanyaan ini akan segera diperbarui.
                                         </p>
                                     </div>
                                 </div>
@@ -246,7 +249,7 @@ export default function LandingPage({ currentUser, setCurrentUser, onLogout }) {
             <section id="credit" className="py-20 bg-linear-to-b from-[#00489b] to-[#00165D]">
                 <div className="max-w-7xl mx-auto px-6 text-center">
                     <div className="h-16 w-16 flex items-center justify-center font-bold mx-auto mb-8 text-2xl">
-                        <img src={logo} className='scale-[150%]' />
+                        <img src={logo} className='scale-[150%]' alt="Logo" />
                     </div>
                     <h2 className="text-3xl font-bold mb-8">The Team Behind Seism</h2>
                     <div className="flex flex-wrap justify-center gap-8 mb-16">
