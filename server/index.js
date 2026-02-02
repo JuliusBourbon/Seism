@@ -63,75 +63,87 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
     if (!lat || !lon || !user_device_lat || !user_device_lon) {
         return res.status(400).json({ error: "Data lokasi tidak lengkap." });
     }
-
-    const distance = calculateDistance(
-        parseFloat(user_device_lat), parseFloat(user_device_lon),
-        parseFloat(lat), parseFloat(lon)
-    );
-
-    if (distance > 5.0) {
-        return res.status(403).json({ error: `Lokasi terlalu jauh (${distance.toFixed(1)} km). Maksimal 5 km.` });
-    }
-
-    const limitMinutes = 2; 
-
-    const checkSql = "SELECT created_at FROM reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 1";
-    
-    db.query(checkSql, [user_id], (err, results) => {
-        if (err) {
-            console.error("History Check Error:", err);
-            return res.status(500).json({ error: "Gagal mengecek history" });
-        }
-
-        if (results.length > 0) {
-            const lastReportTime = new Date(results[0].created_at);
-            const now = new Date();
-            const diffMs = now - lastReportTime;
-            const diffMinutes = Math.floor(diffMs / 60000);
-
-            if (diffMinutes < limitMinutes) {
-                const sisaWaktu = limitMinutes - diffMinutes;
-                return res.status(429).json({ 
-                    error: `Terlalu cepat! Kamu harus menunggu ${sisaWaktu} menit lagi sebelum melapor kembali.` 
-                });
-            }
-        }
-
-        let finalImageUrl = null;
-        if (req.file) {
-            finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-        }
-
-        const insertSql = `
-            INSERT INTO reports (user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'pending', NOW(), NOW())
-        `;
+    const userCheckSql = "SELECT role, suspended_until FROM users WHERE id = ?";
+    db.query(userCheckSql, [user_id], (err, userResults) => {
+        if (err) return res.status(500).json({ error: "DB Error" });
         
-        const values = [
-            user_id, 
-            user_name,
-            title,
-            type,
-            description,
-            lat,
-            lon,
-            location_name,
-            finalImageUrl
-        ];
-
-        db.query(insertSql, values, (err, result) => {
-            if (err) {
-                console.error("Insert Error:", err);
-                return res.status(500).json({ error: "Gagal menyimpan laporan." });
+        if (userResults.length > 0) {
+            const user = userResults[0];
+            
+            // Logika blokir jika tersuspend
+            if (user.suspended_until && new Date(user.suspended_until) > new Date()) {
+                return res.status(403).json({ error: "Akun disuspend. Tidak dapat melapor." });
             }
-
-            res.status(201).json({
-                message: "Laporan berhasil dikirim!",
-                data: {
-                    id: result.insertId,
-                    status: 'pending',
-                    type: type
+        }
+        const distance = calculateDistance(
+            parseFloat(user_device_lat), parseFloat(user_device_lon),
+            parseFloat(lat), parseFloat(lon)
+        );
+    
+        if (distance > 5.0) {
+            return res.status(403).json({ error: `Lokasi terlalu jauh (${distance.toFixed(1)} km). Maksimal 5 km.` });
+        }
+    
+        const limitMinutes = 2; 
+    
+        const checkSql = "SELECT created_at FROM reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 1";
+        
+        db.query(checkSql, [user_id], (err, results) => {
+            if (err) {
+                console.error("History Check Error:", err);
+                return res.status(500).json({ error: "Gagal mengecek history" });
+            }
+    
+            if (results.length > 0) {
+                const lastReportTime = new Date(results[0].created_at);
+                const now = new Date();
+                const diffMs = now - lastReportTime;
+                const diffMinutes = Math.floor(diffMs / 60000);
+    
+                if (diffMinutes < limitMinutes) {
+                    const sisaWaktu = limitMinutes - diffMinutes;
+                    return res.status(429).json({ 
+                        error: `Terlalu cepat! Kamu harus menunggu ${sisaWaktu} menit lagi sebelum melapor kembali.` 
+                    });
                 }
+            }
+    
+            let finalImageUrl = null;
+            if (req.file) {
+                finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+            }
+    
+            const insertSql = `
+                INSERT INTO reports (user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'pending', NOW(), NOW())
+            `;
+            
+            const values = [
+                user_id, 
+                user_name,
+                title,
+                type,
+                description,
+                lat,
+                lon,
+                location_name,
+                finalImageUrl
+            ];
+    
+            db.query(insertSql, values, (err, result) => {
+                if (err) {
+                    console.error("Insert Error:", err);
+                    return res.status(500).json({ error: "Gagal menyimpan laporan." });
+                }
+    
+                res.status(201).json({
+                    message: "Laporan berhasil dikirim!",
+                    data: {
+                        id: result.insertId,
+                        status: 'pending',
+                        type: type
+                    }
+                });
             });
         });
     });
@@ -159,102 +171,137 @@ app.post('/api/reports/:id/vote', (req, res) => {
     const reportId = req.params.id;
     const { user_id, type } = req.body;
 
-    if (!user_id) return res.status(401).json({ error: "User wajib login untuk melakukan voting." });
+    if (!user_id) return res.status(401).json({ error: "User wajib login" });
 
-    db.query("SELECT status FROM reports WHERE id = ?", [reportId], (err, results) => {
-        if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
-        
-        const currentStatus = results[0].status;
-        
-        if (currentStatus !== 'pending') {
-            return res.status(400).json({ 
-                error: `Voting ditutup. Status laporan sudah final: ${currentStatus}.` 
-            });
+    // Cek apakah user pem-voting sedang disuspend? (Opsional, tapi disarankan)
+    const checkVoterSql = "SELECT suspended_until FROM users WHERE id = ?";
+    db.query(checkVoterSql, [user_id], (err, voterRes) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+        if (voterRes.length > 0 && voterRes[0].suspended_until) {
+            if (new Date(voterRes[0].suspended_until) > new Date()) {
+                return res.status(403).json({ error: "Akun Anda sedang ditangguhkan (suspend). Tidak bisa melakukan voting." });
+            }
         }
-        
-        const checkSql = "SELECT * FROM votes_detail WHERE report_id = ? AND user_id = ?";
-        db.query(checkSql, [reportId, user_id], (err, results) => {
-            if (err) return res.status(500).json({ error: "Database error" });
-    
-            let detailQuery = "";
-            let detailParams = [];
+
+        // Lanjut ke logika voting
+        db.query("SELECT status FROM reports WHERE id = ?", [reportId], (err, results) => {
+            if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
             
-            let upChange = 0;
-            let downChange = 0;
-    
-            if (results.length === 0) {
-                detailQuery = "INSERT INTO votes_detail (report_id, user_id, vote_type) VALUES (?, ?, ?)";
-                detailParams = [reportId, user_id, type];
-                
-                if (type === 'up') upChange = 1;
-                else downChange = 1;
-    
-            } else {
-                const currentVote = results[0].vote_type;
-    
-                if (currentVote === type) {
-                    detailQuery = "DELETE FROM votes_detail WHERE report_id = ? AND user_id = ?";
-                    detailParams = [reportId, user_id];
-    
-                    if (type === 'up') upChange = -1;
-                    else downChange = -1;
-    
+            const currentStatus = results[0].status;
+            
+            if (currentStatus !== 'pending') {
+                return res.status(400).json({ 
+                    error: `Voting ditutup. Status laporan sudah final: ${currentStatus}.` 
+                });
+            }
+
+            const checkSql = "SELECT * FROM votes_detail WHERE report_id = ? AND user_id = ?";
+            db.query(checkSql, [reportId, user_id], (err, results) => {
+                if (err) return res.status(500).json({ error: "Database error" });
+        
+                let detailQuery = "";
+                let detailParams = [];
+                let upChange = 0;
+                let downChange = 0;
+        
+                if (results.length === 0) {
+                    detailQuery = "INSERT INTO votes_detail (report_id, user_id, vote_type) VALUES (?, ?, ?)";
+                    detailParams = [reportId, user_id, type];
+                    if (type === 'up') upChange = 1; else downChange = 1;
                 } else {
-                    detailQuery = "UPDATE votes_detail SET vote_type = ? WHERE report_id = ? AND user_id = ?";
-                    detailParams = [type, reportId, user_id];
-    
-                    if (type === 'up') {
-                        upChange = 1; 
-                        downChange = -1; 
+                    const currentVote = results[0].vote_type;
+                    if (currentVote === type) {
+                        detailQuery = "DELETE FROM votes_detail WHERE report_id = ? AND user_id = ?";
+                        detailParams = [reportId, user_id];
+                        if (type === 'up') upChange = -1; else downChange = -1;
                     } else {
-                        upChange = -1; 
-                        downChange = 1;
+                        detailQuery = "UPDATE votes_detail SET vote_type = ? WHERE report_id = ? AND user_id = ?";
+                        detailParams = [type, reportId, user_id];
+                        if (type === 'up') { upChange = 1; downChange = -1; } 
+                        else { upChange = -1; downChange = 1; }
                     }
                 }
-            }
-    
-            db.query(detailQuery, detailParams, (err) => {
-                if (err) return res.status(500).json({ error: "Gagal update history vote" });
-    
-                const updateCountSql = `
-                    UPDATE reports 
-                    SET 
-                        upvotes = GREATEST(0, upvotes + ?), 
-                        downvotes = GREATEST(0, downvotes + ?)
-                    WHERE id = ?
-                `;
-    
-                db.query(updateCountSql, [upChange, downChange, reportId], (err) => {
-                    if (err) return res.status(500).json({ error: "Gagal update angka vote" });
-    
-                    db.query("SELECT upvotes, downvotes FROM reports WHERE id = ?", [reportId], (err, reportData) => {
-                        if (err || reportData.length === 0) return res.status(500).json({ error: "Gagal mengambil data report" });
-    
-                        const up = reportData[0].upvotes;
-                        const down = reportData[0].downvotes;
-    
-                        let newStatus = 'pending';
-    
-                        if ((up - down) <= -10) {
-                            newStatus = 'invalid';
-                        }
-                        else if ((up + down) > 10 && up >= (2 * down)) {
-                            newStatus = 'valid';
-                        }
-    
-                        db.query(
-                            "UPDATE reports SET status = ?, updated_at = NOW() WHERE id = ?", 
-                            [newStatus, reportId], 
-                            (err) => {
-                                if (err) return res.status(500).json({ error: "Gagal update status" });
-    
-                                res.json({ 
-                                    message: "Vote sukses", 
-                                    new_counts: { upvotes: up, downvotes: down },
-                                    new_status: newStatus 
-                                });
-                            }
-                        );
+        
+                db.query(detailQuery, detailParams, (err) => {
+                    if (err) return res.status(500).json({ error: "Gagal update history vote" });
+        
+                    const updateCountSql = `
+                        UPDATE reports 
+                        SET upvotes = GREATEST(0, upvotes + ?), downvotes = GREATEST(0, downvotes + ?)
+                        WHERE id = ?
+                    `;
+        
+                    db.query(updateCountSql, [upChange, downChange, reportId], (err) => {
+                        if (err) return res.status(500).json({ error: "Gagal update angka vote" });
+        
+                        // PENTING: Ambil user_id pemilik laporan juga
+                        db.query("SELECT upvotes, downvotes, user_id FROM reports WHERE id = ?", [reportId], (err, reportData) => {
+                            if (err || reportData.length === 0) return res.status(500).json({ error: "Gagal mengambil data report" });
+        
+                            const report = reportData[0];
+                            const up = report.upvotes;
+                            const down = report.downvotes;
+                            const ownerId = report.user_id; // ID Pemilik Laporan
+        
+                            let newStatus = 'pending';
+                            if ((up - down) <= -10) newStatus = 'invalid';
+                            else if ((up + down) > 10 && up >= (2 * down)) newStatus = 'valid';
+        
+                            // Update Status Report
+                            db.query(
+                                "UPDATE reports SET status = ?, updated_at = NOW() WHERE id = ?", 
+                                [newStatus, reportId], 
+                                (err) => {
+                                    if (err) return res.status(500).json({ error: "Gagal update status" });
+
+                                    // --- LOGIKA HUKUMAN (SUSPEND) ---
+                                    if (newStatus === 'invalid' && ownerId) {
+                                        // 1. Ambil data invalid_count user saat ini
+                                        db.query("SELECT invalid_count FROM users WHERE id = ?", [ownerId], (err, userRes) => {
+                                            if (!err && userRes.length > 0) {
+                                                let currentCount = userRes[0].invalid_count || 0;
+                                                let newCount = currentCount + 1;
+                                                let suspendQuery = "";
+                                                let suspendParams = [];
+
+                                                // Logika Durasi Suspend
+                                                let suspendDuration = null; // null artinya tidak kena suspend kali ini
+                                                
+                                                if (newCount === 3) {
+                                                    suspendDuration = 'DATE_ADD(NOW(), INTERVAL 1 WEEK)';
+                                                } else if (newCount === 5) {
+                                                    suspendDuration = 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
+                                                } else if (newCount >= 7) { // >= 7 untuk handle jika terus berlanjut
+                                                    suspendDuration = 'DATE_ADD(NOW(), INTERVAL 1 YEAR)';
+                                                }
+
+                                                if (suspendDuration) {
+                                                    // Update count DAN suspended_until DAN role
+                                                    suspendQuery = `UPDATE users SET invalid_count = ?, suspended_until = ${suspendDuration}, role = 'suspended' WHERE id = ?`;
+                                                    suspendParams = [newCount, ownerId];
+                                                } else {
+                                                    // Hanya update count (misal baru 1, 2, 4, atau 6)
+                                                    suspendQuery = "UPDATE users SET invalid_count = ? WHERE id = ?";
+                                                    suspendParams = [newCount, ownerId];
+                                                }
+
+                                                // Eksekusi Hukuman
+                                                db.query(suspendQuery, suspendParams, (err) => {
+                                                    if(err) console.error("Gagal update hukuman user:", err);
+                                                });
+                                            }
+                                        });
+                                    }
+                                    // --- END LOGIKA HUKUMAN ---
+        
+                                    res.json({ 
+                                        message: "Vote sukses", 
+                                        new_counts: { upvotes: up, downvotes: down },
+                                        new_status: newStatus 
+                                    });
+                                }
+                            );
+                        });
                     });
                 });
             });
@@ -336,6 +383,31 @@ app.post('/api/auth/login', (req, res) => {
         }
 
         const user = results[0];
+
+        // --- CEK STATUS SUSPEND ---
+        if (user.suspended_until) {
+            const suspendedUntil = new Date(user.suspended_until);
+            const now = new Date();
+
+            if (suspendedUntil > now) {
+                // Format tanggal agar mudah dibaca user
+                const dateString = suspendedUntil.toLocaleDateString('id-ID', { 
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+                });
+                
+                return res.status(403).json({ 
+                    error: `Akun Anda dibekukan karena laporan tidak valid berulang. Anda dapat login kembali pada: ${dateString}.` 
+                });
+            } else {
+                // Jika masa hukuman sudah lewat, kembalikan role ke verified (opsional, tapi rapi)
+                if (user.role === 'suspended') {
+                    db.query("UPDATE users SET role = 'verified', suspended_until = NULL WHERE id = ?", [user.id]);
+                    user.role = 'verified'; // Update object user di memori untuk respon login ini
+                }
+            }
+        }
+        // --- END CEK SUSPEND ---
+
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
@@ -349,6 +421,7 @@ app.post('/api/auth/login', (req, res) => {
                 username: user.username,
                 email: user.email,
                 role: user.role
+                // user_identifier tidak perlu dikirim lagi karena fitur guest dihapus
             }
         });
     });
