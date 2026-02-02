@@ -79,8 +79,8 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
             parseFloat(lat), parseFloat(lon)
         );
     
-        if (distance > 5.0) {
-            return res.status(403).json({ error: `Lokasi terlalu jauh (${distance.toFixed(1)} km). Maksimal 5 km.` });
+        if (distance > 10.0) {
+            return res.status(403).json({ error: `Lokasi terlalu jauh (${distance.toFixed(1)} km). Maksimal 10 km.` });
         }
     
         const limitMinutes = 2; 
@@ -136,11 +136,24 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
                 }
     
                 res.status(201).json({
-                    message: "Laporan berhasil dikirim!",
-                    data: {
+                message: "Laporan berhasil dikirim!",
+                data: {
                         id: result.insertId,
+                        user_id: user_id,
+                        user_name: user_name,
+                        title: title,
+                        type: type,
+                        description: description,
+                        lat: parseFloat(lat), 
+                        lon: parseFloat(lon), 
+                        location_name: location_name,
+                        image_url: finalImageUrl,
+                        upvotes: 0,
+                        downvotes: 0,
                         status: 'pending',
-                        type: type
+                        reporter_role: 'verified', 
+                        created_at: new Date(), 
+                        updated_at: new Date()
                     }
                 });
             });
