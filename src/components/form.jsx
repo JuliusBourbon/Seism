@@ -103,25 +103,25 @@ export default function Form({onClose, currentUser, onSuccess}) {
     };
 
     return(
-        <div className="bg-white rounded-2xl w-[65%] h-[85%] relative pointer-events-auto shadow-2xl mt-15">
-            <div className="absolute top-0 z-1 w-full">
-                <div className="flex justify-end mr-7 mt-5">
-                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm">✕</button>
+        <div className="bg-white rounded-2xl w-[80%] h-[80vh] relative shadow-2xl flex flex-col overflow-x-auto animate-fade-in border border-gray-200">
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 grid grid-cols-2 items-center sticky top-0 z-20">
+                <h1 className="text-lg md:text-2xl font-bold text-slate-800 md:block text-left">Form Laporan Kejadian</h1>
+                <div className='flex justify-end'>
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm">
+                    ✕
+                    </button>
                 </div>
             </div>
-            <div className="w-full h-full flex flex-col gap-10 items-center">
-                <div className="flex mt-5 justify-center text-3xl font-semibold">
-                    <h1>Form Laporan Bencana</h1>
-                </div>
+            <div className="w-full h-full flex flex-col gap-10 items-center py-5 transition-all">
                 {gpsError && (
                     <div className="absolute top-0 left-0 w-full bg-red-500 text-white p-2 text-center text-sm z-50">
                         {gpsError}
                     </div>
                 )}
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6 md:w-4xl px-7 md:px-10 lg:px-0">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="md:col-span-2">
-                            <label className="block font-semibold text-gray-700 mb-2">Judul Laporan</label>
+                            <label className="block text-lg font-semibold text-gray-700 mb-2">Judul Laporan</label>
                             <input 
                                 type="text" 
                                 placeholder="Contoh: Banjir setinggi lutut di Jl. Sudirman"
@@ -132,7 +132,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                             />
                         </div>
                         <div>
-                            <label className="block font-semibold text-gray-700 mb-2">Jenis Kejadian</label>
+                            <label className="block text-lg font-semibold text-gray-700 mb-2">Jenis Kejadian</label>
                             <select 
                                 className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white cursor-pointer"
                                 value={formData.type}
@@ -149,7 +149,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                     </div>
 
                     <div>
-                        <label className="block font-semibold text-gray-700 mb-2">Deskripsi Lengkap</label>
+                        <label className="block text-lg font-semibold text-gray-700 mb-2">Deskripsi Lengkap</label>
                         <textarea
                             placeholder="Jelaskan kondisi terkini, kebutuhan mendesak, atau info penting lainnya..."
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all resize-none h-24"
@@ -158,7 +158,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                     </div>
 
                     <div>
-                        <label className="block font-semibold text-gray-700 mb-2">Titik Lokasi (Geser Pin)</label>
+                        <label className="block text-lg font-semibold text-gray-700 mb-2">Titik Lokasi (Geser Pin)</label>
                         <div className="h-64 w-full rounded-xl overflow-hidden border border-gray-300 shadow-inner">
                             <LocationPicker onLocationChange={handleLocationUpdate} userPosition={
                                     userLocation.lat && userLocation.lon 
@@ -167,13 +167,13 @@ export default function Form({onClose, currentUser, onSuccess}) {
                                 } />
                         </div>
                         <p className="text-xs text-gray-500 mt-1 italic">
-                            *Pin harus berada di dalam lingkaran biru (radius 5km dari lokasi Anda).
+                            *Pin harus berada di dalam lingkaran biru (radius 10km dari lokasi Anda).
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block font-semibold text-gray-700 mb-2">Nama Lokasi / Patokan</label>
+                            <label className="block text-lg font-semibold text-gray-700 mb-2">Nama Lokasi / Patokan</label>
                             <input 
                                 type="text" 
                                 placeholder="Contoh: Depan Indomaret Point"
@@ -182,7 +182,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                             />
                         </div>
                         <div>
-                            <label className="block font-semibold text-gray-700 mb-2">Bukti Foto</label>
+                            <label className="block text-lg font-semibold text-gray-700 mb-2">Bukti Foto</label>
                             <input 
                                 type="file" 
                                 accept="image/*"
@@ -194,7 +194,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                     <div className="flex justify-end">
                         <button 
                             onClick={handleSubmit}
-                            className="w-full md:w-auto bg-linear-to-r from-blue-600 to-blue-500 text-white px-6 py-2 rounded-xl font-bold cursor-pointer shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                            className="w-full md:w-auto text-lg bg-linear-to-r from-blue-600 to-blue-500 text-white px-6 py-2 rounded-xl font-bold cursor-pointer shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                         >
                             <span>Kirim Laporan</span>
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>

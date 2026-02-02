@@ -47,35 +47,39 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
     const isMember = currentUser?.role === 'verified';
 
     return(
-        <div 
-            className="bg-white rounded-2xl w-[95%] h-[85%] relative pointer-events-auto shadow-2xl mt-15 max-w-md mx-auto overflow-hidden"
-            onMouseDown={(e) => e.stopPropagation()} 
-            onClick={(e) => e.stopPropagation()}
-        >
-            <div className="absolute top-4 right-4 z-10">
-                <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm">✕</button>
+        <div className="bg-white rounded-2xl w-[80%] h-[80vh] relative shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-gray-200" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 grid grid-cols-2 items-center sticky top-0 z-20">
+                <h1 className="text-2xl font-bold text-slate-800 hidden md:block text-left">Profile</h1>
+                <div className='flex justify-end'>
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all cursor-pointer font-bold shadow-sm">
+                    ✕
+                    </button>
+                </div>
             </div>
 
-            <div className="w-full h-full pt-8">
-                <div className="flex justify-center text-2xl font-semibold text-[#00165D] mb-2">
-                    <h1>Profile</h1>
-                </div>
-
-                <div className="w-full h-[calc(100%-60px)] flex flex-col items-center justify-start p-6 overflow-y-auto">
-                    
-                    
+            <div className="w-full h-full py-5 px-20">
+                <div className="w-full h-full flex flex-col">
                     {isMember ? (
-                        <div className="flex flex-col items-center w-full">
-                            <div className="w-24 h-24 bg-linear-to-tr from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-4xl text-white font-bold mb-4 shadow-lg">
-                                {currentUser?.username?.charAt(0).toUpperCase()}
+                        <div className="flex flex-col justify-between h-full w-full">
+                            <div>
+                                <div className="flex items-center gap-5">
+                                    <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-4xl text-white font-bold shadow-lg">
+                                        {currentUser?.username?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <p className="text-2xl font-bold text-gray-800">{currentUser?.username}</p>
+                                </div>
+                                <div>
+                                    <p className="text-lg mb-2">Email: {currentUser?.email}</p>
+                                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase tracking-wider mb-8">Verified Member</span>
+                                </div>
                             </div>
-                            <h2 className="text-2xl font-bold text-gray-800">{currentUser?.username}</h2>
-                            <p className="text-gray-500 text-sm mb-2">{currentUser?.email}</p>
-                            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase tracking-wider mb-8">Verified Member</span>
+
+                            <div className="w-full flex justify-end py-10">
+                                <button onClick={onLogout} className="px-4 py-2 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 border border-red-200">
+                                    Log Out
+                                </button>
+                            </div>
                             
-                            <button onClick={onLogout} className="mt-8 w-full py-3 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 border border-red-200">
-                                Log Out
-                            </button>
                         </div>
                     ) : (
                         <div className="flex flex-col w-full">
