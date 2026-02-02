@@ -133,6 +133,8 @@ export default function ReportPopup({ report, currentUser }) {
             default: return 'bg-gray-100 text-gray-500 border-gray-200';
         }
     };
+    
+    const badReputation = report.reporter_invalid_count || 0;
 
     const date = new Date(report.created_at);
     const formatted = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}, 
@@ -146,23 +148,26 @@ export default function ReportPopup({ report, currentUser }) {
                     {report.user_name ? report.user_name.charAt(0).toUpperCase() : '?'}
                 </div>
                 
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                     <span className="text-sm font-bold leading-none text-gray-900 truncate max-w-[120px]">
-                        {report.user_name || "Anonim"}
+                        {report.user_name}
                     </span>
-                    <span className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wide ${report.reporter_role === 'verified' ? 'text-blue-600' : 'text-gray-500'}`}>
-                        {report.reporter_role || 'User'}
-                    </span>
+                    {badReputation > 0 && (
+                        <span className="flex items-center gap-0.5 bg-red-100 text-red-600 px-1 py-px rounded text-xs font-semibold border border-red-200" title="Jumlah laporan invalid user ini">
+                            <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                            {badReputation} Invalid
+                        </span>
+                    )}
                 </div>
             </div>
 
-            <span className="text-[10px] text-gray-400 font-medium bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+            <span className="text-xs text-gray-900 font-medium bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
                 {formatted}
             </span>
         </div>
 
         <div className="flex items-center justify-between gap-2 mb-3">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide
+            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide
                 ${report.type === 'Banjir' ? 'bg-blue-100 text-blue-600 border-blue-200 ring-1 ring-blue-500' :
                 report.type === 'Kebakaran' ? 'bg-red-100 text-red-600 border-red-200 ring-1 ring-red-500' :
                 report.type === 'Gempa' ? 'bg-purple-100 text-purple-600 border-purple-200 ring-1 ring-purple-500' :
@@ -172,8 +177,8 @@ export default function ReportPopup({ report, currentUser }) {
                 {report.type}
             </span>
 
-            <span className={`px-2.5 py-1 rounded text-[9px] font-extrabold uppercase tracking-wider border ${getStatusColor(currentStatus)} transition-all duration-300`}>
-                {currentStatus}
+            <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(currentStatus)} transition-all duration-300`}>
+                Laporan {currentStatus}
             </span>
         </div>
 

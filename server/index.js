@@ -299,7 +299,7 @@ app.post('/api/reports/:id/vote', (req, res) => {
 
 app.get('/api/reports', (req, res) => {
     const sql = `
-        SELECT r.*, u.role AS reporter_role 
+        SELECT r.*, u.role AS reporter_role, u.invalid_count AS reporter_invalid_count
         FROM reports r
         LEFT JOIN users u ON r.user_id = u.id
         WHERE 
