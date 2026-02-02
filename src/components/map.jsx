@@ -17,9 +17,20 @@ import { getCategoryIcon } from "../assets/iconUtils.js";
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
+
     useEffect(() => {
         if (coords) {
-            map.flyTo(coords, 10, {duration: 2});
+            map.flyTo(coords, 16, { duration: 2 });
+            map.eachLayer((layer) => {
+                if (layer.getLatLng && layer.openPopup) {
+                    const markerLoc = layer.getLatLng();
+                    const targetLoc = L.latLng(coords[0], coords[1]);
+
+                    if (markerLoc.distanceTo(targetLoc) < 1) { 
+                        layer.openPopup();
+                    }
+                }
+            });
         }
     }, [coords, map]);
 
@@ -118,7 +129,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                 {dataGempa.filter(() => filterState['gempa'] === true).map((gempa, idx) => {
                     const coordinatesArray = gempa.Coordinates.split(',').map(parseFloat);
                     return (
-                        <Marker key={idx} position={coordinatesArray} icon={getCategoryIcon('Gempa')}>
+                        <Marker key={idx} position={coordinatesArray} icon={getCategoryIcon('Gempa')} >
                             <Popup>
                                 <div className="justify-center items-center flex flex-col gap-3">
                                     <h1 className="font-bold text-lg text-center">{gempa.Wilayah}</h1>
