@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
 import LocationPicker from "./locationPicker";
-import { getIconHtml } from '../assets/iconUtils';
 
 export default function Form({onClose, currentUser, onSuccess}) {
     const [userLocation, setUserLocation] = useState({ lat: null, lon: null });
