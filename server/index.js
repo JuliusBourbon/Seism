@@ -70,7 +70,6 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
         if (userResults.length > 0) {
             const user = userResults[0];
             
-            // Logika blokir jika tersuspend
             if (user.suspended_until && new Date(user.suspended_until) > new Date()) {
                 return res.status(403).json({ error: "Akun disuspend. Tidak dapat melapor." });
             }
@@ -173,7 +172,6 @@ app.post('/api/reports/:id/vote', (req, res) => {
 
     if (!user_id) return res.status(401).json({ error: "User wajib login" });
 
-    // Cek apakah user pem-voting sedang disuspend? (Opsional, tapi disarankan)
     const checkVoterSql = "SELECT suspended_until FROM users WHERE id = ?";
     db.query(checkVoterSql, [user_id], (err, voterRes) => {
         if (err) return res.status(500).json({ error: "Database error" });
@@ -183,7 +181,6 @@ app.post('/api/reports/:id/vote', (req, res) => {
             }
         }
 
-        // Lanjut ke logika voting
         db.query("SELECT status FROM reports WHERE id = ?", [reportId], (err, results) => {
             if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
             
@@ -234,29 +231,25 @@ app.post('/api/reports/:id/vote', (req, res) => {
                     db.query(updateCountSql, [upChange, downChange, reportId], (err) => {
                         if (err) return res.status(500).json({ error: "Gagal update angka vote" });
         
-                        // PENTING: Ambil user_id pemilik laporan juga
                         db.query("SELECT upvotes, downvotes, user_id FROM reports WHERE id = ?", [reportId], (err, reportData) => {
                             if (err || reportData.length === 0) return res.status(500).json({ error: "Gagal mengambil data report" });
         
                             const report = reportData[0];
                             const up = report.upvotes;
                             const down = report.downvotes;
-                            const ownerId = report.user_id; // ID Pemilik Laporan
+                            const ownerId = report.user_id; 
         
                             let newStatus = 'pending';
                             if ((up - down) <= -10) newStatus = 'invalid';
                             else if ((up + down) > 10 && up >= (2 * down)) newStatus = 'valid';
         
-                            // Update Status Report
                             db.query(
                                 "UPDATE reports SET status = ?, updated_at = NOW() WHERE id = ?", 
                                 [newStatus, reportId], 
                                 (err) => {
                                     if (err) return res.status(500).json({ error: "Gagal update status" });
 
-                                    // --- LOGIKA HUKUMAN (SUSPEND) ---
                                     if (newStatus === 'invalid' && ownerId) {
-                                        // 1. Ambil data invalid_count user saat ini
                                         db.query("SELECT invalid_count FROM users WHERE id = ?", [ownerId], (err, userRes) => {
                                             if (!err && userRes.length > 0) {
                                                 let currentCount = userRes[0].invalid_count || 0;
@@ -264,35 +257,30 @@ app.post('/api/reports/:id/vote', (req, res) => {
                                                 let suspendQuery = "";
                                                 let suspendParams = [];
 
-                                                // Logika Durasi Suspend
-                                                let suspendDuration = null; // null artinya tidak kena suspend kali ini
+                                                let suspendDuration = null; 
                                                 
                                                 if (newCount === 3) {
                                                     suspendDuration = 'DATE_ADD(NOW(), INTERVAL 1 WEEK)';
                                                 } else if (newCount === 5) {
                                                     suspendDuration = 'DATE_ADD(NOW(), INTERVAL 1 MONTH)';
-                                                } else if (newCount >= 7) { // >= 7 untuk handle jika terus berlanjut
+                                                } else if (newCount >= 7) { 
                                                     suspendDuration = 'DATE_ADD(NOW(), INTERVAL 1 YEAR)';
                                                 }
 
                                                 if (suspendDuration) {
-                                                    // Update count DAN suspended_until DAN role
                                                     suspendQuery = `UPDATE users SET invalid_count = ?, suspended_until = ${suspendDuration}, role = 'suspended' WHERE id = ?`;
                                                     suspendParams = [newCount, ownerId];
                                                 } else {
-                                                    // Hanya update count (misal baru 1, 2, 4, atau 6)
                                                     suspendQuery = "UPDATE users SET invalid_count = ? WHERE id = ?";
                                                     suspendParams = [newCount, ownerId];
                                                 }
 
-                                                // Eksekusi Hukuman
                                                 db.query(suspendQuery, suspendParams, (err) => {
                                                     if(err) console.error("Gagal update hukuman user:", err);
                                                 });
                                             }
                                         });
                                     }
-                                    // --- END LOGIKA HUKUMAN ---
         
                                     res.json({ 
                                         message: "Vote sukses", 
