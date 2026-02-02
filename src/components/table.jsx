@@ -6,6 +6,14 @@ export default function Table({ onClose }) {
     const [dataDisasters, setDataDisasters] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    const [filterDate, setFilterDate] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab, filterDate]);
+
     useEffect(() => {
         setLoading(true);
         if (activeTab === 'reports') {
@@ -33,6 +41,31 @@ export default function Table({ onClose }) {
         }
     }, [activeTab]);
 
+    const getFilteredData = () => {
+        const sourceData = activeTab === 'reports' ? dataReports : dataDisasters;
+
+        if (!filterDate) {
+            return sourceData;
+        }
+
+        return sourceData.filter(item => {
+            const dateString = activeTab === 'reports' 
+                ? item.created_at 
+                : (item.created_at);
+            
+            if (!dateString) return false;
+
+            const itemDate = new Date(dateString).toISOString().split('T')[0];
+            return itemDate === filterDate;
+        });
+    };
+
+    const processedData = getFilteredData();
+    const totalPages = Math.ceil(processedData.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = processedData.slice(indexOfFirstItem, indexOfLastItem);
+
     const formatDate = (isoString) => {
         if (!isoString) return '-';
         const date = new Date(isoString);
@@ -44,10 +77,10 @@ export default function Table({ onClose }) {
 
     const StatusBadge = ({ status }) => {
         const styles = {
-            valid: 'bg-green-100 text-green-700 border-green-200',
-            invalid: 'bg-red-100 text-red-700 border-red-200',
-            pending: 'bg-gray-100 text-gray-700 border-gray-200',
-            resolved: 'bg-blue-100 text-blue-700 border-blue-200',
+            valid: 'bg-green-100 text-green-500 border-green-200',
+            invalid: 'bg-red-100 text-red-500 border-red-200',
+            pending: 'bg-gray-100 text-gray-500 border-gray-200',
+            resolved: 'bg-blue-100 text-blue-500 border-blue-200',
         };
         const labels = {
             valid: 'Valid',
@@ -63,44 +96,60 @@ export default function Table({ onClose }) {
     };
 
     return (
-        <div className="bg-white rounded-2xl w-[90%] h-[90%] relative shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-gray-200">
-            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center sticky top-0 z-10">
-                <div className="flex gap-4 items-center">
-                    <h1 className="text-2xl font-bold text-slate-800">Data Historis</h1>
-                    
-                    <div className="flex bg-white rounded-lg p-1 border border-gray-300 shadow-sm">
-                        <button
-                            onClick={() => setActiveTab('reports')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
-                                activeTab === 'reports' 
-                                ? 'bg-blue-600 text-white shadow-md' 
-                                : 'text-gray-500 hover:bg-gray-100'
-                            }`}
-                        >
-                            Laporan Warga
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('disasters')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
-                                activeTab === 'disasters' 
-                                ? 'bg-orange-600 text-white shadow-md' 
-                                : 'text-gray-500 hover:bg-gray-100'
-                            }`}
-                        >
-                            Gempa BMKG
-                        </button>
-                    </div>
+        <div className="bg-white rounded-2xl w-[80%] h-[80vh] relative shadow-2xl flex flex-col overflow-hidden animate-fade-in border border-gray-200">
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-20">
+                <h1 className="text-2xl font-bold text-slate-800 hidden md:block">Data Historis</h1>
+                <div className="flex bg-white rounded-lg p-1 border border-gray-300 shadow-sm">
+                    <button
+                        onClick={() => setActiveTab('reports')}
+                        className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+                            activeTab === 'reports' 
+                            ? 'bg-blue-600 text-white shadow-md' 
+                            : 'text-gray-500 hover:bg-gray-100'
+                        }`}
+                    >
+                        Laporan Warga
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('disasters')}
+                        className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+                            activeTab === 'disasters' 
+                            ? 'bg-orange-600 text-white shadow-md' 
+                            : 'text-gray-500 hover:bg-gray-100'
+                        }`}
+                    >
+                        Gempa BMKG
+                    </button>
                 </div>
 
-                <button 
-                    onClick={onClose} 
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all font-bold shadow-sm"
-                >
-                    ✕
-                </button>
+                <div className="flex gap-3 items-center w-full md:w-auto justify-end">
+                    <div className="relative">
+                        <input 
+                            type="date" 
+                            className="pl-3 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-600"
+                            value={filterDate}
+                            onChange={(e) => setFilterDate(e.target.value)}
+                        />
+                        {filterDate && (
+                            <button 
+                                onClick={() => setFilterDate('')}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center hover:bg-red-600"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+
+                    <button 
+                        onClick={onClose} 
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all font-bold shadow-sm"
+                    >
+                        ✕
+                    </button>
+                </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-0 bg-white">
+            <div className="flex-1 overflow-auto px-6 bg-white">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-400">
                         <svg className="animate-spin h-8 w-8 mb-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -126,9 +175,9 @@ export default function Table({ onClose }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {dataReports.length === 0 ? (
+                                    {currentItems.length === 0 ? (
                                         <tr><td colSpan="6" className="p-8 text-center text-gray-400">Belum ada laporan tercatat.</td></tr>
-                                    ) : dataReports.map((item, index) => (
+                                    ) : currentItems.map((item, index) => (
                                         <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                                             <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
                                                { index + 1 }
@@ -184,9 +233,9 @@ export default function Table({ onClose }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {dataDisasters.length === 0 ? (
+                                    {currentItems.length === 0 ? (
                                         <tr><td colSpan="5" className="p-8 text-center text-gray-400">Tidak ada data gempa tersimpan.</td></tr>
-                                    ) : dataDisasters.map((gempa, idx) => (
+                                    ) : currentItems.map((gempa, idx) => (
                                         <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
                                             <td className="p-4 text-sm text-gray-600 whitespace-nowrap">
                                                 {idx + 1}
@@ -219,9 +268,33 @@ export default function Table({ onClose }) {
                 )}
             </div>
             
-            <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex justify-between items-center text-xs text-gray-400">
-                <span>Menampilkan {activeTab === 'reports' ? dataReports.length : dataDisasters.length} data terbaru</span>
-                <span className="italic">Data real-time dari Server & BMKG</span>
+            <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 gap-3">
+                <div className="font-medium">
+                    Menampilkan {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, processedData.length)} dari {processedData.length} data
+                    {filterDate && <span className="text-blue-600 ml-1">(Difilter)</span>}
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 rounded border bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Prev
+                    </button>
+                    
+                    <span className="font-bold text-slate-700">
+                        Page {currentPage} of {totalPages || 1}
+                    </span>
+
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="px-3 py-1 rounded border bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
         </div>
     );
