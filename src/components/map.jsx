@@ -14,6 +14,7 @@ import Profile from "./profile.jsx";
 import Help from "./help.jsx";
 import ReportPopup from "./reportPopup.jsx";
 import { getCategoryIcon } from "../assets/iconUtils.js";
+import { useNotification } from "./notificationContext.jsx";
 
 const FlyToLocation = ({ coords }) => {
     const map = useMap();
@@ -38,6 +39,7 @@ const FlyToLocation = ({ coords }) => {
 };
 
 export default function Map({ currentUser, onLoginSuccess, onLogout }){
+    const { showNotification } = useNotification();
     const [activeTab, setActiveTab] = useState('home')
     const handleCloseTab = () => {
         setActiveTab('home');
@@ -85,7 +87,12 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
             });
         }
         
-        alert("Laporan berhasil diterbitkan!");
+        showNotification(
+            "Laporan berhasil dikirim",
+            "",
+            "success",
+            "Tutup"
+        );
     };
 
     useEffect(() => {

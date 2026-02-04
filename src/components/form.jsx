@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import LocationPicker from "./locationPicker";
+import { useNotification } from "./notificationContext";
 
 export default function Form({onClose, currentUser, onSuccess}) {
+    const { showNotification } = useNotification();
     const [userLocation, setUserLocation] = useState({ lat: null, lon: null });
     const [gpsError, setGpsError] = useState(null);
     const [formData, setFormData] = useState({
@@ -53,12 +55,22 @@ export default function Form({onClose, currentUser, onSuccess}) {
         e.preventDefault();
 
         if (!userLocation.lat || !userLocation.lon) {
-            alert("Sedang mendeteksi lokasi Anda... Mohon tunggu.");
+            showNotification(
+                "Mendeteksi lokasi",
+                "Mohon Tunggu beberapa saat",
+                "",
+                "Tutup"
+            );
             return;
         }
 
         if (!currentUser || !currentUser.id) {
-            alert("Anda wajib login untuk mengirim laporan!");
+            showNotification(
+                "Login terlebih dahulu",
+                "Anda wajib login untuk dapat mengirimkan laporan",
+                "error",
+                "Tutup"
+            );
             return;
         }
 
@@ -93,12 +105,22 @@ export default function Form({onClose, currentUser, onSuccess}) {
                 if (onSuccess) onSuccess(result.data); 
                 onClose(); 
             } else {
-                alert(result.error || "Gagal mengirim laporan.");
+                showNotification(
+                    "Gagal mengirim laporan",
+                    result.error,
+                    "error",
+                    "Tutup"
+                );
             }
 
         } catch (error) {
             console.error(error);
-            alert("Terjadi kesalahan koneksi.");
+            showNotification(
+                "Error",
+                "Terjadi kesalahan koneksi",
+                "error",
+                "Tutup"
+            );
         }
     };
 

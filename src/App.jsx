@@ -3,9 +3,11 @@ import { Routes, Route } from 'react-router-dom'
 import './App.css'
 import Map from './components/map'
 import LandingPage from './components/landingPage'
+import ConfirmModal from './components/confirmPopup'
 
 export default function App(){
   const [currentUser, setCurrentUser] = useState(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user_session');
@@ -26,17 +28,26 @@ export default function App(){
     setCurrentUser(userData);
   };
 
-  const handleLogout = () => {
-    const confirm = window.confirm("Yakin ingin keluar akun?");
-    if (confirm) {
-        localStorage.removeItem('user_session'); 
-        setCurrentUser(null);
-        alert("Anda telah logout.");
-    }
+  const requestLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const executeLogout = () => {
+    localStorage.removeItem('user_session');
+    setCurrentUser(null);
+    setShowLogoutConfirm(false);
   };
 
   return(
     <div>
+      <ConfirmModal 
+        isOpen={showLogoutConfirm}
+        title="Keluar Akun?"
+        message="Anda akan keluar dari sesi ini."
+        onConfirm={executeLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+        isDestructive={true}
+      />
       <main>
         <Routes>
           <Route 
@@ -45,7 +56,7 @@ export default function App(){
               <LandingPage 
                 currentUser={currentUser} 
                 onLoginSuccess={handleLoginSuccess} 
-                onLogout={handleLogout}
+                onLogout={requestLogout}
               />
             } 
           />
@@ -55,7 +66,7 @@ export default function App(){
               <Map 
                 currentUser={currentUser} 
                 onLoginSuccess={handleLoginSuccess} 
-                onLogout={handleLogout}
+                onLogout={requestLogout}
               />
             }
           />

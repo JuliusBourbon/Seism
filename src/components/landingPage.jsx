@@ -3,8 +3,10 @@ import { useState } from 'react';
 import LoginPopup from './loginPopup';
 import { useNavigate } from 'react-router-dom';
 import image from '../assets/image.png'
+import { useNotification } from './notificationContext';
 
 export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
+    const { showNotification } = useNotification();
     const isLoggedIn = !!currentUser;
     
     const navigate = useNavigate();
@@ -25,7 +27,12 @@ export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
             const data = await response.json();
 
             if (response.ok) {
-                alert(`Selamat datang kembali, ${data.user.username}!`);
+                showNotification(
+                    "Selamat datang kembali, ", data.user.username,
+                    "",
+                    "success",
+                    "Tutup"
+                );
                 
                 if (onLoginSuccess) {
                     onLoginSuccess(data.user); 
@@ -34,11 +41,21 @@ export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
                 setShowAuth(false); 
                 navigate('/map')
             } else {
-                alert(data.error || "Login Gagal");
+                showNotification(
+                    "Gagal Login",
+                    data.error,
+                    "error",
+                    "Tutup"
+                );
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("Gagal menghubungi server");
+            showNotification(
+                "Server Error",
+                "",
+                "error",
+                "Tutup"
+            );
         }
     };
 
@@ -57,7 +74,12 @@ export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
             const data = await response.json();
 
             if (response.ok) {
-                alert("Registrasi Berhasil! Selamat datang Member baru.");
+                showNotification(
+                    "Registrasi Berhasil",
+                    "",
+                    "success",
+                    "Tutup"
+                );
                 
                 if (onLoginSuccess) {
                     onLoginSuccess(data.user);
@@ -65,11 +87,21 @@ export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
                 
                 setShowAuth(false); 
             } else {
-                alert(data.error || "Registrasi Gagal");
+                showNotification(
+                    "Gagal Registrasi",
+                    data.error,
+                    "error",
+                    "Tutup"
+                );
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("Gagal menghubungi server");
+            showNotification(
+                "Error",
+                "Server Error",
+                "error",
+                "Tutup"
+            );
         }
     };
 

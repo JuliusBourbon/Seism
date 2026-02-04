@@ -34,13 +34,7 @@ function DraggableMarker({ position, setPosition, onLocationChange, userPosition
                     
                     if (userPosition) {
                         const start = L.latLng(userPosition[0], userPosition[1]);
-                        const distance = start.distanceTo(newPos);
-                        
-                        if (distance > 10000) {
-                            alert("Lokasi pin terlalu jauh dari posisi Anda! Maksimal 10km.");
-                        }
                     }
-
                     setPosition(newPos)
                     onLocationChange(newPos)
                 }

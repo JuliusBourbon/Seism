@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import logo from "../assets/seism.png"
+import { useNotification } from "./notificationContext";
 
 export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess }) {
     const [isRegisterMode, setIsRegisterMode] = useState(false);
     const [userReports, setUserReports] = useState([]);
     const [isLoadingReports, setIsLoadingReports] = useState(false);
+    const { showNotification } = useNotification();
 
     const [formData, setFormData] = useState({
         username: "",
@@ -50,16 +52,31 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
             const data = await response.json();
 
             if (response.ok) {
-                alert(isRegisterMode ? "Akun berhasil diupgrade!" : "Login Berhasil!");
+                showNotification(
+                    isRegisterMode ? "Daftar Berhasil" : "Login Berhasil", 
+                    `Selamat datang kembali, ${data.user.username}!`,
+                    "success",
+                    "Lanjut"
+                );
                 if (onAuthSuccess) {
                     onAuthSuccess(data.user); 
                 }
             } else {
-                alert(data.error || "Gagal memproses data");
+                showNotification(
+                    "Gagal Masuk",
+                    data.error || "Terjadi kesalahan pada server.",
+                    "error",
+                    "Coba Lagi"
+                );
             }
         } catch (error) {
             console.error(error);
-            alert("Gagal menghubungi server");
+            showNotification(
+                "Koneksi Terputus",
+                "Gagal menghubungi server. Periksa koneksi internet Anda.",
+                "error",
+                "Tutup"
+            );
         }
     };
 

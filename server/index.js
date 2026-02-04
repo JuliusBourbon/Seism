@@ -102,7 +102,7 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
                 if (diffMinutes < limitMinutes) {
                     const sisaWaktu = limitMinutes - diffMinutes;
                     return res.status(429).json({ 
-                        error: `Terlalu cepat! Kamu harus menunggu ${sisaWaktu} menit lagi sebelum melapor kembali.` 
+                        error: `Kamu harus menunggu ${sisaWaktu} menit lagi sebelum melapor kembali.` 
                     });
                 }
             }
@@ -354,7 +354,7 @@ app.get('/api/reports/report_history', (req, res) => {
 });
 
 app.get('/api/disaster_history', (req, res) => {
-    const sql = "SELECT * FROM disaster_history ORDER BY id DESC LIMIT 100";
+    const sql = "SELECT * FROM disaster_history ORDER BY id DESC";
     db.query(sql, (err, results) => {
         if (err) {
             console.error("Failed to fetch history:", err);
