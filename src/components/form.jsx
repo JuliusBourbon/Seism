@@ -25,7 +25,7 @@ export default function Form({onClose, currentUser, onSuccess}) {
                         lat: position.coords.latitude,
                         lon: position.coords.longitude
                     });
-                    console.log("Lokasi User Terdeteksi:", position.coords);
+                    // console.log("Lokasi User Terdeteksi:", position.coords);
                 },
                 (error) => {
                     console.error("Error GPS:", error);

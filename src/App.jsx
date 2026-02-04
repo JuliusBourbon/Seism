@@ -23,7 +23,7 @@ export default function App(){
   }, []);
 
   const handleLoginSuccess = (userData) => {
-    console.log("User Login:", userData);
+    // console.log("User Login:", userData);
     localStorage.setItem('user_session', JSON.stringify(userData)); 
     setCurrentUser(userData);
   };

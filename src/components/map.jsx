@@ -104,7 +104,7 @@ export default function Map({ currentUser, onLoginSuccess, onLogout }){
                     throw new Error("Gagal mengambil data");
                 }
                 const data = await response.json();
-                console.log("Data Laporan dari DB:", data); 
+                // console.log("Data Laporan dari DB:", data); 
                 setReports(data); 
 
             } catch (error) {
