@@ -22,8 +22,7 @@ export default function LegendsBar({ markers, isCheck, toggleMarker }) {
                 
                 <div className="bg-white/95 backdrop-blur-md shadow-2xl border border-white/20 h-full w-64 rounded-2xl flex flex-col overflow-hidden pointer-events-auto">
                     <div className="bg-gray-50/50 p-4 border-b border-gray-100">
-                        <h1 className="font-bold text-gray-800 text-lg">Map Legends</h1>
-                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mt-1">Data Layer</p>
+                        <h1 className="font-bold text-gray-800 text-lg">Legends</h1>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-2">
