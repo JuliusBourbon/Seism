@@ -6,6 +6,8 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
+import axios from 'axios';
+import cron from 'node-cron';
 
 const app = express();
 dotenv.config();
@@ -19,6 +21,11 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME
 });
 
+db.connect((err) => {
+    if (err) throw err;
+    console.log('Connected to database');
+});
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; 
     const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -30,10 +37,14 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c; 
 }
 
-db.connect((err) => {
-    if (err) throw err;
-    console.log('Connected to database');
-});
+const queryPromise = (sql, values) => {
+    return new Promise((resolve, reject) => {
+        db.query(sql, values, (err, results) => {
+            if (err) reject(err);
+            else resolve(results);
+        });
+    });
+};
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -533,6 +544,56 @@ app.put('/api/reports/:id/resolve', (req, res) => {
         });
     });
 });
+
+const fetchAndStoreGempa = async () => {
+    console.log(`[SYSTEM] Menjalankan pengecekan data BMKG: ${new Date().toLocaleString()}`);
+    try {
+        const response = await axios.get('https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.json');
+        const gempaList = response.data.Infogempa.gempa;
+        let newCount = 0;
+
+        for (const gempa of gempaList) {
+            const rawDate = gempa.DateTime;
+            const sourceId = `BMKG-${rawDate}`;
+
+            const checkSql = 'SELECT source_id FROM disaster_history WHERE source_id = ? LIMIT 1';
+            const existing = await queryPromise(checkSql, [sourceId]);
+
+            if (existing.length > 0) {
+                continue;
+            }
+
+            const insertSql = `
+                INSERT INTO disaster_history 
+                (source_id, datetime, magnitude, depth, coordinates, location) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            `;
+
+            await queryPromise(insertSql, [
+                sourceId,
+                rawDate,
+                gempa.Magnitude,
+                gempa.Kedalaman,
+                gempa.Coordinates,
+                gempa.Wilayah
+            ]);
+            newCount++;
+            console.log(`✔️Gempa Baru Terdeteksi: ${gempa.Wilayah} (${gempa.Magnitude})`);
+        }
+        if (newCount === 0) {
+            console.log("😴Tidak ada data gempa yang terdeteksi.");
+        }
+
+    } catch (error) {
+        console.error("✖️Error Fetching data:", error.message);
+    }
+};
+
+cron.schedule('0 * * * *', () => {
+    fetchAndStoreGempa();
+});
+
+fetchAndStoreGempa();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
