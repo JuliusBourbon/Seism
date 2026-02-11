@@ -4,6 +4,10 @@ import LoginPopup from './loginPopup';
 import { useNavigate } from 'react-router-dom';
 import image from '../assets/image.png'
 import { useNotification } from './notificationContext';
+import dev from '../assets/hhe.jpeg'
+import dev1 from '../assets/dev1.jpeg'
+import dev2 from '../assets/dev2.jpeg'
+import dev3 from '../assets/dev3.jpeg'
 
 export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
     const { showNotification } = useNotification();
@@ -313,13 +317,26 @@ export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
                     </div>
                     <h2 className="text-3xl font-bold mb-8">The Team Behind Seism</h2>
                     <div className="flex flex-wrap justify-center gap-8 mb-16">
-                        {['Bourbon', 'Sherry', 'Chianti', 'Vermouth'].map((name, i) => (
-                            <div key={i} className="flex flex-col items-center">
-                                <div className="h-24 w-24 bg-white/20 rounded-full mb-4"></div>
-                                <span className="font-semibold">{name}</span>
-                                <span className="text-xs text-blue-200 uppercase tracking-widest">Developer</span>
-                            </div>
-                        ))}
+                        <div className="flex flex-col items-center gap-1">
+                            <img src={dev} className='h-24 w-24 object-cover rounded-full' alt="" />
+                            <span className="font-semibold">Raihan Fathir Muhammad</span>
+                            <span className="text-xs text-blue-200 uppercase tracking-widest">Developer</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                            <img src={dev3} className='h-24 w-24 object-cover rounded-full' alt="" />
+                            <span className="font-semibold">Leatry Zhalsabila Putri</span>
+                            <span className="text-xs text-blue-200 uppercase tracking-widest">Developer</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                            <img src={dev2} className='h-24 w-24 object-cover rounded-full' alt="" />
+                            <span className="font-semibold">Nindya Dzirah Awdyren</span>
+                            <span className="text-xs text-blue-200 uppercase tracking-widest">Developer</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                            <img src={dev1} className='h-24 w-24 object-cover rounded-full' alt="" />
+                            <span className="font-semibold">Nabila Syifa Az Zahra</span>
+                            <span className="text-xs text-blue-200 uppercase tracking-widest">Developer</span>
+                        </div>
                     </div>
                     <div className="border-t border-white/20 pt-8 text-sm text-gray-400">
                         <p>© 2026 Seism Project. All rights reserved.</p>
