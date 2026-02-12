@@ -32,7 +32,7 @@ export default function LandingPage({ currentUser, onLoginSuccess, onLogout }) {
 
             if (response.ok) {
                 showNotification(
-                    "Selamat datang kembali, ", data.user.username,
+                    "Login berhasil",
                     "",
                     "success",
                     "Tutup"

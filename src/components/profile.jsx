@@ -7,12 +7,75 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
     const [userReports, setUserReports] = useState([]);
     const [isLoadingReports, setIsLoadingReports] = useState(false);
     const { showNotification } = useNotification();
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [newUsername, setNewUsername] = useState("");
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const [formData, setFormData] = useState({
         username: "",
         email: "",
         password: ""
     });
+
+    useEffect(() => {
+        if (currentUser) {
+            setNewUsername(currentUser.username);
+        }
+    }, [currentUser]);
+
+    const handleUpdateName = async () => {
+        if (!newUsername.trim()) return showNotification(
+                    "Username tidak boleh kosong",
+                    "",
+                    "error",
+                    "Tutup"
+                );
+        if (newUsername === currentUser.username) {
+            setIsEditingName(false);
+            return;
+        }
+
+    setIsUpdating(true);
+        try {
+            const response = await fetch(`http://localhost:3000/api/users/${currentUser.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: newUsername })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showNotification(
+                    "Username berhasil diubah",
+                    "",
+                    "success",
+                    "Tutup"
+                );
+                setIsEditingName(false);
+                if (onAuthSuccess) {
+                    onAuthSuccess(data.user);
+                }
+            } else {
+                showNotification(
+                    "Error",
+                    data.error,
+                    "error",
+                    "Tutup"
+                );
+            }
+        } catch (error) {
+            console.error(error);
+            showNotification(
+                "Gagal menghubungi server",
+                "",
+                "error",
+                "Tutup"
+            );
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     useEffect(() => {
         if (currentUser && currentUser.id) {
@@ -54,9 +117,9 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
             if (response.ok) {
                 showNotification(
                     isRegisterMode ? "Daftar Berhasil" : "Login Berhasil", 
-                    `Selamat datang kembali, ${data.user.username}!`,
+                    ``,
                     "success",
-                    "Lanjut"
+                    "Tutup"
                 );
                 if (onAuthSuccess) {
                     onAuthSuccess(data.user); 
@@ -116,7 +179,48 @@ export default function Profile({ onClose, currentUser, onLogout, onAuthSuccess 
                                 <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-4 shadow-lg ring-4 ring-blue-50">
                                     {currentUser.username?.charAt(0).toUpperCase()}
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-900">{currentUser.username}</h2>
+                                {isEditingName ? (
+                                    <div className="flex items-center gap-2 mb-1 w-full max-w-[200px]">
+                                        <input 
+                                            type="text" 
+                                            value={newUsername}
+                                            onChange={(e) => setNewUsername(e.target.value)}
+                                            className="w-full text-center px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-200 font-bold text-gray-900"
+                                            autoFocus
+                                        />
+                                        <button 
+                                            onClick={handleUpdateName}
+                                            disabled={isUpdating}
+                                            className="p-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                setIsEditingName(false);
+                                                setNewUsername(currentUser.username);
+                                            }}
+                                            className="p-2 bg-gray-300/20 text-gray-700 rounded hover:bg-gray-400/40"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 mb-1 relative">
+                                        <h2 className="text-xl font-bold text-gray-900">
+                                            {currentUser.username}
+                                        </h2>
+                                        <button 
+                                            onClick={() => setIsEditingName(true)}
+                                            className="transition-opacity p-1 cursor-pointer"
+                                            title="Edit Username"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="blue" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                )}
                                 <p className="text-sm text-gray-500 mb-1">{currentUser.email}</p>
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mt-2 
                                     ${currentUser.role === 'suspended' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>

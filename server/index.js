@@ -545,6 +545,44 @@ app.put('/api/reports/:id/resolve', (req, res) => {
     });
 });
 
+app.put('/api/users/:id', (req, res) => {
+    const userId = req.params.id;
+    const { username } = req.body;
+
+    if (!username) {
+        return res.status(400).json({ error: "Username tidak boleh kosong" });
+    }
+
+    const checkSql = "SELECT id FROM users WHERE username = ? AND id != ?";
+    db.query(checkSql, [username, userId], (err, results) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+        if (results.length > 0) {
+            return res.status(409).json({ error: "Username sudah digunakan user lain." });
+        }
+
+        const updateSql = "UPDATE users SET username = ? WHERE id = ?";
+        db.query(updateSql, [username, userId], (err) => {
+            if (err) return res.status(500).json({ error: "Gagal mengupdate profile" });
+
+            const getUserSql = "SELECT * FROM users WHERE id = ?";
+            db.query(getUserSql, [userId], (err, userRes) => {
+                if (err || userRes.length === 0) return res.status(500).json({ error: "Gagal mengambil data user baru" });
+                
+                const updatedUser = userRes[0];
+                res.json({
+                    message: "Profile berhasil diperbarui",
+                    user: {
+                        id: updatedUser.id,
+                        username: updatedUser.username,
+                        email: updatedUser.email,
+                        role: updatedUser.role
+                    }
+                });
+            });
+        });
+    });
+});
+
 const fetchAndStoreGempa = async () => {
     console.log(`[SYSTEM] Menjalankan pengecekan data BMKG: ${new Date().toLocaleString()}`);
     try {
