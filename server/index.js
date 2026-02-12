@@ -63,7 +63,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.post('/api/reports', upload.single('image'), (req, res) => {
     const { 
-        user_id, user_name, title, type, description, 
+        user_id, title, type, description, 
         lat, lon, location_name, user_device_lat, user_device_lon 
     } = req.body;
 
@@ -124,13 +124,12 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
             }
     
             const insertSql = `
-                INSERT INTO reports (user_id, user_name, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'pending', NOW(), NOW())
+                INSERT INTO reports (user_id, title, type, description, lat, lon, location_name, image_url, upvotes, downvotes, status, created_at, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'pending', NOW(), NOW())
             `;
             
             const values = [
                 user_id, 
-                user_name,
                 title,
                 type,
                 description,
@@ -145,27 +144,31 @@ app.post('/api/reports', upload.single('image'), (req, res) => {
                     console.error("Insert Error:", err);
                     return res.status(500).json({ error: "Gagal menyimpan laporan." });
                 }
-    
-                res.status(201).json({
-                message: "Laporan berhasil dikirim!",
-                data: {
-                        id: result.insertId,
-                        user_id: user_id,
-                        user_name: user_name,
-                        title: title,
-                        type: type,
-                        description: description,
-                        lat: parseFloat(lat), 
-                        lon: parseFloat(lon), 
-                        location_name: location_name,
-                        image_url: finalImageUrl,
-                        upvotes: 0,
-                        downvotes: 0,
-                        status: 'pending',
-                        reporter_role: 'verified', 
-                        created_at: new Date(), 
-                        updated_at: new Date()
-                    }
+
+                db.query("SELECT username FROM users WHERE id = ?", [user_id], (err, userRows) => {
+                    const reporterName = userRows.length > 0 ? userRows[0].username : 'Unknown';
+
+                    res.status(201).json({
+                        message: "Laporan berhasil dikirim!",
+                        data: {
+                            id: result.insertId,
+                            user_id: user_id,
+                            username: reporterName,
+                            title: title,
+                            type: type,
+                            description: description,
+                            lat: parseFloat(lat), 
+                            lon: parseFloat(lon), 
+                            location_name: location_name,
+                            image_url: finalImageUrl,
+                            upvotes: 0,
+                            downvotes: 0,
+                            status: 'pending',
+                            reporter_role: 'verified', 
+                            created_at: new Date(), 
+                            updated_at: new Date()
+                        }
+                    });
                 });
             });
         });
@@ -199,13 +202,21 @@ app.post('/api/reports/:id/vote', (req, res) => {
     const checkVoterSql = "SELECT suspended_until FROM users WHERE id = ?";
     db.query(checkVoterSql, [user_id], (err, voterRes) => {
         if (err) return res.status(500).json({ error: "Database error" });
+        
         if (voterRes.length > 0 && voterRes[0].suspended_until) {
             if (new Date(voterRes[0].suspended_until) > new Date()) {
                 return res.status(403).json({ error: "Akun Anda sedang ditangguhkan (suspend). Tidak bisa melakukan voting." });
             }
         }
 
-        db.query("SELECT status FROM reports WHERE id = ?", [reportId], (err, results) => {
+        const getReportSql = `
+            SELECT r.upvotes, r.downvotes, r.status, u.username 
+            FROM reports r 
+            LEFT JOIN users u ON r.user_id = u.id 
+            WHERE r.id = ?
+        `;
+
+        db.query(getReportSql, [reportId], (err, results) => {
             if (err || results.length === 0) return res.status(404).json({ error: "Laporan tidak ditemukan" });
             
             const currentStatus = results[0].status;
@@ -278,9 +289,9 @@ app.post('/api/reports/:id/vote', (req, res) => {
                                             if (!err && userRes.length > 0) {
                                                 let currentCount = userRes[0].invalid_count || 0;
                                                 let newCount = currentCount + 1;
+                                                
                                                 let suspendQuery = "";
                                                 let suspendParams = [];
-
                                                 let suspendDuration = null; 
                                                 
                                                 if (newCount === 3) {
@@ -323,17 +334,17 @@ app.post('/api/reports/:id/vote', (req, res) => {
 
 app.get('/api/reports', (req, res) => {
     const sql = `
-        SELECT r.*, u.role AS reporter_role, u.invalid_count AS reporter_invalid_count
+        SELECT 
+            r.*, 
+            u.username, 
+            u.role AS reporter_role 
         FROM reports r
         LEFT JOIN users u ON r.user_id = u.id
         WHERE 
             (r.status = 'pending' AND r.created_at > NOW() - INTERVAL 48 HOUR)
-            OR 
-            (r.status = 'valid' AND r.updated_at > NOW() - INTERVAL 168 HOUR)
-            OR
-            (r.status = 'resolved' AND r.updated_at > NOW() - INTERVAL 24 HOUR)
-            OR
-            (r.status = 'invalid' AND r.updated_at > NOW() - INTERVAL 12 HOUR)
+            OR (r.status = 'valid' AND r.updated_at > NOW() - INTERVAL 168 HOUR)
+            OR (r.status = 'resolved' AND r.updated_at > NOW() - INTERVAL 24 HOUR)
+            OR (r.status = 'invalid' AND r.updated_at > NOW() - INTERVAL 12 HOUR)
         ORDER BY r.created_at DESC
     `;
 
@@ -349,7 +360,10 @@ app.get('/api/reports', (req, res) => {
 
 app.get('/api/reports/report_history', (req, res) => {
     const sql = `
-        SELECT r.*, u.username as reporter_name, u.role as reporter_role
+        SELECT 
+            r.*, 
+            u.username, 
+            u.role AS reporter_role 
         FROM reports r
         LEFT JOIN users u ON r.user_id = u.id
         ORDER BY r.created_at DESC
@@ -379,9 +393,14 @@ app.get('/api/reports/user/:userId', (req, res) => {
     const userId = req.params.userId;
 
     const sql = `
-        SELECT * FROM reports 
-        WHERE user_id = ? 
-        ORDER BY created_at DESC
+        SELECT 
+            r.*, 
+            u.username, 
+            u.role AS reporter_role
+        FROM reports r
+        LEFT JOIN users u ON r.user_id = u.id
+        WHERE r.user_id = ? 
+        ORDER BY r.created_at DESC
     `;
 
     db.query(sql, [userId], (err, results) => {

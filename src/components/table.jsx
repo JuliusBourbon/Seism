@@ -187,7 +187,7 @@ export default function Table({ onClose }) {
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-semibold text-gray-700">{item.user_name}</span>
+                                                    <span className="text-sm font-semibold text-gray-700">{item.username}</span>
                                                 </div>
                                             </td>
                                             <td className="p-4">

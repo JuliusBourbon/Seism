@@ -231,12 +231,12 @@ export default function ReportPopup({ report, currentUser }) {
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2.5">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${report.reporter_role === 'verified' ? 'bg-blue-600' : 'bg-gray-400'}`}>
-                        {report.user_name ? report.user_name.charAt(0).toUpperCase() : '?'}
+                        {report.username ? report.username.charAt(0).toUpperCase() : '?'}
                     </div>
                     
                     <div className="flex flex-col gap-1">
                         <span className="text-sm font-bold leading-none text-gray-900 truncate max-w-[120px]">
-                            {report.user_name}
+                            {report.username}
                         </span>
                         {badReputation > 0 && (
                             <span className="flex items-center gap-0.5 bg-red-100 text-red-600 px-1 py-px rounded text-xs font-semibold border border-red-200" title="Jumlah laporan invalid user ini">

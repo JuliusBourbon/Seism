@@ -7,7 +7,6 @@ export default function Form({onClose, currentUser, onSuccess}) {
     const [userLocation, setUserLocation] = useState({ lat: null, lon: null });
     const [gpsError, setGpsError] = useState(null);
     const [formData, setFormData] = useState({
-        user_name: '',
         title: '',
         type: 'Banjir',
         description: '',
@@ -77,9 +76,6 @@ export default function Form({onClose, currentUser, onSuccess}) {
         const data = new FormData();
         
         data.append('user_id', currentUser.id);
-        
-
-        data.append('user_name', formData.user_name);
         data.append('title', formData.title);
         data.append('type', formData.type);
         data.append('description', formData.description);
