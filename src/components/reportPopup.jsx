@@ -264,7 +264,7 @@ export default function ReportPopup({ report, currentUser }) {
                 </span>
 
                 <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(currentStatus)} transition-all duration-300`}>
-                    Laporan {currentStatus}
+                    {currentStatus}
                 </span>
             </div>
 

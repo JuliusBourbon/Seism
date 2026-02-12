@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Sidebar({ dataGempa, onLocationSelect, dataReports }) {
     const [sideBar, setSideBar] = useState('gempa');
@@ -25,6 +25,26 @@ export default function Sidebar({ dataGempa, onLocationSelect, dataReports }) {
             return 'bg-blue-100 text-blue-600 border-blue-200'
         }
     }
+
+    const currentStatus = dataReports?.status || 'pending';
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'valid': return 'bg-green-100 text-green-700 ring-1 border-green-200';
+            case 'invalid': return 'bg-red-100 text-red-700 ring-1 border-red-200';
+            case 'resolved': return 'bg-blue-100 text-blue-700 ring-1 border-blue-200';
+            default: return 'bg-gray-100 text-gray-700 ring-1 border-gray-200';
+        }
+    };
+
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'valid': return 'Valid';
+            case 'invalid': return 'Invalid';
+            case 'resolved': return 'Resolved';
+            default: return 'Pending';
+        }
+    };
 
     return (
         <div className="flex h-screen relative">
@@ -91,20 +111,31 @@ export default function Sidebar({ dataGempa, onLocationSelect, dataReports }) {
                                         ${date.getHours()}:${date.getMinutes().toString().padStart(2, "0")}`;
                                     return(
                                         <div key={idx} onClick={() => handleCoorClick(report.lat, report.lon)} className="p-4 hover:bg-blue-50/80 cursor-pointer transition-colors group">
-                                            <div className="flex justify-between items-start mb-1">
+                                            <div className="flex justify-between items-start mb-1 gap-2">
                                                 <h1 className="font-bold text-gray-800 text-sm leading-tight group-hover:text-blue-700 transition-colors w-2/3">
                                                     {report.title}
                                                 </h1>
-                                                <span className={`border px-2 py-0.5 rounded text-[12px] font-bold whitespace-nowrap ${magClassName(report.Magnitude)}`}>
-                                                    {report.type}
-                                                </span>
+                                                <div className="flex gap-1">
+                                                    <div className={`border px-2 py-0.5 rounded text-[12px] font-bold whitespace-nowrap ${getStatusColor(report.status)}`}>
+                                                        {getStatusLabel(report.status)}
+                                                    </div>
+                                                    <span className={`border px-2 py-0.5 rounded text-[12px] font-bold whitespace-nowrap
+                                                        ${report.type === 'Banjir' ? 'bg-blue-100 text-blue-600 border-blue-200 ring-1 ring-blue-500' :
+                                                        report.type === 'Kebakaran' ? 'bg-red-100 text-red-600 border-red-200 ring-1 ring-red-500' :
+                                                        report.type === 'Gempa' ? 'bg-purple-100 text-purple-600 border-purple-200 ring-1 ring-purple-500' :
+                                                        report.type === 'Longsor' ? 'bg-red-100 text-orange-600 border-orange-200 ring-1 ring-orange-500' :
+                                                        report.type === 'Akses Tertutup' ? 'bg-yellow-100 text-yellow-600 border-yellow-200 ring-1 ring-yellow-500' :
+                                                        'bg-gray-100 text-gray-600'}`}>
+                                                        {report.type}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <div className="text-sm text-gray-600">
                                                 <h3>
                                                     {report.location_name}
                                                 </h3>
                                             </div>
-                                            <div className="flex justify-between gap-1 text-xs text-gray-400 mt-2">
+                                            <div className="flex justify-between gap-1 text-xs text-gray-700 mt-2">
                                                 <div className="flex gap-1 items-center">
                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                                                     {formatted}
