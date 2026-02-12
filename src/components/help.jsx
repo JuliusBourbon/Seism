@@ -276,6 +276,85 @@ export default function Help({ onClose }) {
                     *Akun yang ter-suspend bisa melihat waktu hukuman yang tersisa dengan cara melakukan login.
                 </p>
             </section>
+
+            <section className="rounded-xl p-5 border border-blue-50 bg-white shadow-sm mb-4">
+              <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-3">
+                  <span className="bg-blue-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm shadow-md">4</span>
+                  Aturan Tampilan Peta Interaktif
+              </h3>
+              <div className="pl-10">
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                      Agar peta tetap relevan, bersih, dan akurat, laporan akan <b>otomatis disembunyikan</b> dari peta utama setelah melewati batas waktu berikut:
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      
+                      <div className="p-3 bg-green-50 rounded-lg border border-green-100 hover:shadow-sm transition-shadow">
+                          <div className="flex justify-between items-center mb-1">
+                              <span className="text-[12px] font-bold px-2 py-0.5 bg-green-200 text-green-800 rounded-full uppercase">
+                                  Valid
+                              </span>
+                              <span className="font-semibold text-green-700">
+                                  7 HARI
+                              </span>
+                          </div>
+                          <p className="text-gray-600">
+                            Laporan yang terbukti benar adalah informasi vital. Data ini harus bertahan paling lama di peta agar warga tetap waspada terhadap bahaya di lokasi tersebut.
+                          </p>
+                      </div>
+
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:shadow-sm transition-shadow">
+                          <div className="flex justify-between items-center mb-1">
+                              <span className="text-[12px] font-bold px-2 py-0.5 bg-gray-200 text-gray-800 rounded-full uppercase">
+                                  Pending
+                              </span>
+                              <span className="font-semibold text-gray-700">
+                                  48 JAM
+                              </span>
+                          </div>
+                          <p className="text-gray-600">
+                              Memberikan waktu yang cukup bagi komunitas untuk melihat dan melakukan voting (memvalidasi) laporan baru. Jika dalam 2 hari tidak ada kepastian, laporan dianggap kadaluarsa agar tidak memenuhi peta.
+                          </p>
+                      </div>
+
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 hover:shadow-sm transition-shadow">
+                          <div className="flex justify-between items-center mb-1">
+                              <span className="text-[12px] font-bold px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full uppercase">
+                                  Resolved
+                              </span>
+                              <span className="font-semibold text-blue-700">
+                                  24 JAM
+                              </span>
+                          </div>
+                          <p className="text-gray-600">
+                              Data ditampilkan untuk menginfokan masalah sudah selesai.
+                          </p>
+                      </div>
+
+                      <div className="p-3 bg-red-50 rounded-lg border border-red-100 hover:shadow-sm transition-shadow">
+                          <div className="flex justify-between items-center mb-1">
+                              <span className="text-[12px] font-bold px-2 py-0.5 bg-red-200 text-red-800 rounded-full uppercase">
+                                  Invalid
+                              </span>
+                              <span className="font-semibold text-red-700">
+                                  12 JAM
+                              </span>
+                          </div>
+                          <p className="text-gray-600">
+                              Laporan palsu harus secepat mungkin hilang dari map untuk mencegah penyebaran disinformasi, namun tetap ditampilkan sebentar agar user tahu bahwa itu sudah ditandai sebagai invalid report.
+                          </p>
+                      </div>
+
+                  </div>
+
+                  <div className="mt-4 flex items-start gap-2 bg-gray-50 p-3 rounded-lg">
+                      <svg className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      <p className="text-gray-500 italic">
+                          Data yang sudah lewat waktu akan hilang dari Peta, namun tetap tersimpan abadi dan bisa dilihat kembali melalui menu <b>"Data Historis"</b> (Ikon Tabel).
+                      </p>
+                  </div>
+              </div>
+            </section>
           </div>
         )}
 
